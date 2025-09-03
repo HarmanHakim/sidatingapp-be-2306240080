@@ -9,5 +9,4 @@ public class SidatingAppBeApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(SidatingAppBeApplication.class, args);
 	}
-
 }
