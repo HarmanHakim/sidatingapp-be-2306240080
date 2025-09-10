@@ -92,8 +92,8 @@
             <div class="profile-info">
                 <span class="profile-label">Status:</span>
                 <span class="profile-value">
-                    <span th:if="${userProfile.isActive}" class="badge bg-success">Active</span>
-                    <span th:unless="${userProfile.isActive}" class="badge bg-secondary">Inactive</span>
+                    <span th:if="${userProfile.active}" class="badge bg-success">Active</span>
+                    <span th:unless="${userProfile.active}" class="badge bg-secondary">Inactive</span>
                 </span>
             </div>
             

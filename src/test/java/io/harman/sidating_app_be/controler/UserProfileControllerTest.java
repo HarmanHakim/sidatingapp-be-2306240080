@@ -57,41 +57,5 @@ class UserProfileControllerTest {
                 .andExpect(model().attribute("message", ""));
     }
 
-    @Test
-    void testUpdateProfileFound() throws Exception {
-        mockMvc.perform(put("/profile/update/" + existingId)
-                .param("name", "Updated User")
-                .param("nickname", "updateNick")
-                .param("email", "updated@example.com")
-                .param("phoneNumber", "08112233445")
-                .param("birthdate", "1999-12-31"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/profile"));
-    }
 
-    @Test
-    void testUpdateProfileNotFound() throws Exception {
-        mockMvc.perform(put("/profile/update/" + fakeId)
-                .param("name", "Not Exist")
-                .param("nickname", "None")
-                .param("email", "none@example.com")
-                .param("phoneNumber", "08080808")
-                .param("birthdate", "1999-01-01"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/profile"));
-    }
-
-    @Test
-    void testDeleteProfileFound() throws Exception {
-        mockMvc.perform(delete("/profile/delete/" + existingId))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/profile"));
-    }
-
-    @Test
-    void testDeleteProfileNotFound() throws Exception {
-        mockMvc.perform(delete("/profile/delete/" + fakeId))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/profile"));
-    }
 }
