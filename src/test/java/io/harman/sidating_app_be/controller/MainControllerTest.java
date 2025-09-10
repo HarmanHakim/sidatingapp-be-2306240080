@@ -55,4 +55,45 @@ class MainControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith("text/html"));
     }
+
+    @Test
+    void testMainPageWithWhitespaceOnlyName() throws Exception {
+        mockMvc.perform(get("/").param("name", "   "))
+                .andExpect(status().isOk())
+                .andExpect(view().name("main"))
+                .andExpect(model().attribute("name", "SiDating User"));
+    }
+
+    @Test
+    void testMainPageWithTabsAndSpacesName() throws Exception {
+        mockMvc.perform(get("/").param("name", "\t  \n  "))
+                .andExpect(status().isOk())
+                .andExpect(view().name("main"))
+                .andExpect(model().attribute("name", "SiDating User"));
+    }
+
+    @Test
+    void testMainPageWithNameHavingLeadingAndTrailingSpaces() throws Exception {
+        mockMvc.perform(get("/").param("name", "  John  "))
+                .andExpect(status().isOk())
+                .andExpect(view().name("main"))
+                .andExpect(model().attribute("name", "  John  "));
+    }
+
+    @Test
+    void testMainPageWithVeryLongName() throws Exception {
+        String longName = "A".repeat(1000);
+        mockMvc.perform(get("/").param("name", longName))
+                .andExpect(status().isOk())
+                .andExpect(view().name("main"))
+                .andExpect(model().attribute("name", longName));
+    }
+
+    @Test
+    void testMainPageWithNumericName() throws Exception {
+        mockMvc.perform(get("/").param("name", "12345"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("main"))
+                .andExpect(model().attribute("name", "12345"));
+    }
 }
