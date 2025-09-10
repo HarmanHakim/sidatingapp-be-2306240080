@@ -34,22 +34,6 @@ class MainControllerTest {
     }
 
     @Test
-    void testMainPageAlternateRouteWithDefaultName() throws Exception {
-        mockMvc.perform(get("/main"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("main"))
-                .andExpect(model().attribute("name", "SiDating User"));
-    }
-
-    @Test
-    void testMainPageAlternateRouteWithCustomName() throws Exception {
-        mockMvc.perform(get("/main").param("name", "Jane Smith"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("main"))
-                .andExpect(model().attribute("name", "Jane Smith"));
-    }
-
-    @Test
     void testMainPageWithEmptyName() throws Exception {
         mockMvc.perform(get("/").param("name", ""))
                 .andExpect(status().isOk())

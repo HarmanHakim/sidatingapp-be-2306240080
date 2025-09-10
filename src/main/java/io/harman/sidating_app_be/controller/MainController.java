@@ -17,14 +17,4 @@ public class MainController {
         model.addAttribute("name", name);
         return "main";
     }
-    
-    @GetMapping("/main")
-    public String mainPageAlternate(@RequestParam(value = "name", defaultValue = "SiDating User") String name, Model model) {
-        // If name is empty, use default value
-        if (name == null || name.trim().isEmpty()) {
-            name = "SiDating User";
-        }
-        model.addAttribute("name", name);
-        return "main";
-    }
 }
