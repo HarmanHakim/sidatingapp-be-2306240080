@@ -1,137 +1,574 @@
 package io.harman.sidating_app_be.service;
 
+import io.harman.sidating_app_be.dto.post.CreatePostDto;
+import io.harman.sidating_app_be.dto.post.ReadPostDto;
+import io.harman.sidating_app_be.dto.post.UpdatePostDto;
 import io.harman.sidating_app_be.model.Post;
 import io.harman.sidating_app_be.model.UserProfile;
+import io.harman.sidating_app_be.repository.PostRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDate;
-import java.util.UUID;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 class PostServiceTest {
 
     private PostServiceImpl postService;
-    private UserProfileServiceImpl userService;
+
+    @Mock
+    private PostRepository postRepository;
+
+    @Mock
+    private UserProfileService userProfileService;
+
     private UserProfile user;
-    private UserProfile user1;
     private Post post;
-    private Post post1;
-    private Post noUserPost;
-    private Post fakePost;
+    private UUID postId;
+    private UUID userId;
 
     @BeforeEach
     void setUp() {
-        userService = new UserProfileServiceImpl();
-        postService = new PostServiceImpl(userService);
+        MockitoAnnotations.openMocks(this);
+        postService = new PostServiceImpl(postRepository, userProfileService);
+
+        userId = UUID.randomUUID();
+        postId = UUID.randomUUID();
 
         user = UserProfile.builder()
-                .id(UUID.randomUUID())
-                .name("User")
-                .gender("MALE")
+                .id(userId)
+                .name("Test User")
                 .birthdate(LocalDate.of(2000, 1, 1))
-                .build();
-        userService.createUserProfile(user);
-
-        user1 = UserProfile.builder()
-                .id(UUID.randomUUID())
-                .name("User1")
                 .gender("MALE")
-                .birthdate(LocalDate.of(2000, 1, 1))
+                .isActive(true)
                 .build();
-        userService.createUserProfile(user1);
 
         post = Post.builder()
-                .userProfileId(user.getId())
-                .caption("Hello")
-                .build();
-        
-        post1 = Post.builder()
-                .userProfileId(user.getId())
-                .caption("World")
-                .build();
-
-        noUserPost = Post.builder()
-                .caption("World")
+                .id(postId)
+                .userProfile(user)
+                .userProfileId(userId)
+                .imageUrl("https://example.com/image.jpg")
+                .caption("Test Post")
+                .createdAt(LocalDateTime.now().minusHours(1))
+                .updatedAt(LocalDateTime.now().minusHours(1))
+                .isActive(true)
+                .likes(new ArrayList<>())
                 .build();
 
-        fakePost = Post.builder()
-                .id(UUID.randomUUID())
-                .userProfileId(user.getId())
-                .caption("Fake")
-                .build();
+        // Setup mocks
+        when(userProfileService.getUserProfile(userId)).thenReturn(user);
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.save(any(Post.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
-    void testCreateAndGetPost() {
-        Post created = postService.createPost(post);
-        Post created1 = postService.createPost(post1);
-        Post noUserPostCreated = postService.createPost(noUserPost);
+    void testCreatePostSuccess() {
+        CreatePostDto dto = CreatePostDto.builder()
+                .userProfileId(userId)
+                .imageUrl("https://example.com/new-image.jpg")
+                .caption("Hello World")
+                .build();
+
+        when(postRepository.save(any(Post.class))).thenAnswer(invocation -> {
+            Post savedPost = invocation.getArgument(0);
+            savedPost.setId(postId);
+            return savedPost;
+        });
+
+        Post created = postService.createPost(dto);
         
         assertNotNull(created);
-        assertNotNull(created1);
-        assertNull(noUserPostCreated);
-        
-        assertEquals(post.getCaption(), postService.getPost(created.getId()).getCaption());
-        assertNull(postService.getPost(UUID.randomUUID()));
-        assertEquals(2, postService.getAllPost(null, "desc").size());
+        assertEquals(postId, created.getId());
+        assertEquals(userId, created.getUserProfileId());
+        assertEquals("Hello World", created.getCaption());
+        assertEquals("https://example.com/new-image.jpg", created.getImageUrl());
+        assertTrue(created.isActive());
+        verify(postRepository, times(1)).save(any(Post.class));
+        verify(userProfileService, times(1)).getUserProfile(userId);
     }
 
     @Test
-    void testGetAllPostWithFilterAndSort() throws InterruptedException {
-        Post created1 = postService.createPost(post);
-        Thread.sleep(10); // Membedakan createdAt
-        Post created2 = postService.createPost(post1);
+    void testCreatePostFailIfUserNotFound() {
+        CreatePostDto dto = CreatePostDto.builder()
+                .userProfileId(UUID.randomUUID())
+                .imageUrl("https://example.com/image.jpg")
+                .caption("Hello")
+                .build();
 
-        assertEquals(2, postService.getAllPost(null, "desc").size());
-        assertEquals(created2.getId(), postService.getAllPost(null, "desc").get(0).getId());
-        assertEquals(created1.getId(), postService.getAllPost(null, "asc").get(0).getId());
-
-        assertEquals(2, postService.getAllPost(user.getId(), "desc").size());
-        assertEquals(0, postService.getAllPost(user1.getId(), "desc").size());
+        when(userProfileService.getUserProfile(any())).thenReturn(null);
+        
+        Post created = postService.createPost(dto);
+        assertNull(created);
+        verify(postRepository, never()).save(any(Post.class));
     }
 
     @Test
-    void testUpdatePost() {
-        Post created = postService.createPost(post);
-        created.setCaption("Updated");
-        Post updated = postService.updatePost(created);
+    void testCreatePostFailIfUserDeleted() {
+        user.setActive(false);
+        when(userProfileService.getUserProfile(userId)).thenReturn(user);
+
+        CreatePostDto dto = CreatePostDto.builder()
+                .userProfileId(userId)
+                .imageUrl("https://example.com/image.jpg")
+                .caption("Hello")
+                .build();
+
+        Post created = postService.createPost(dto);
+        assertNull(created);
+        verify(postRepository, never()).save(any(Post.class));
+        verify(userProfileService, times(1)).getUserProfile(userId);
+    }
+
+    @Test
+    void testGetAllPostSuccess() {
+        Post post2 = Post.builder()
+                .id(UUID.randomUUID())
+                .userProfileId(userId)
+                .imageUrl("https://example.com/image2.jpg")
+                .caption("Second Post")
+                .createdAt(LocalDateTime.now().plusSeconds(1))
+                .updatedAt(LocalDateTime.now().plusSeconds(1))
+                .isActive(true)
+                .likes(new ArrayList<>())
+                .build();
+
+        List<Post> posts = Arrays.asList(post, post2);
         
-        Post fakePostUpdate = postService.updatePost(fakePost);
+        // Test without userId filter
+        when(postRepository.findByDeletedAtIsNull()).thenReturn(posts);
+        List<Post> result = postService.getAllPost(null, "desc");
+        assertEquals(2, result.size());
+        assertTrue(result.get(0).getCreatedAt().isAfter(result.get(1).getCreatedAt()));
+        
+        // Test with userId filter
+        when(postRepository.findByUserProfileIdAndDeletedAtIsNull(userId)).thenReturn(posts);
+        result = postService.getAllPost(userId, "asc");
+        assertEquals(2, result.size());
+        assertTrue(result.get(0).getCreatedAt().isBefore(result.get(1).getCreatedAt()));
+    }
 
-        Post noProfileCreated = postService.createPost(post1);
-        userService.deleteProfile(user.getId());
-        Post noProfileUpdated = postService.updatePost(noProfileCreated);
+    // NEW: Test edge cases for sorting
+    @Test
+    void testGetAllPostSortingEdgeCases() {
+        Post post1 = Post.builder()
+                .id(UUID.randomUUID())
+                .createdAt(LocalDateTime.now().minusDays(1))
+                .build();
+        
+        Post post2 = Post.builder()
+                .id(UUID.randomUUID())
+                .createdAt(LocalDateTime.now())
+                .build();
+        
+        List<Post> posts = Arrays.asList(post1, post2);
+        when(postRepository.findByDeletedAtIsNull()).thenReturn(posts);
+        
+        // Test case insensitive sorting
+        List<Post> resultAsc = postService.getAllPost(null, "ASC");
+        assertTrue(resultAsc.get(0).getCreatedAt().isBefore(resultAsc.get(1).getCreatedAt()));
+        
+        // Test default desc sorting with null sort parameter
+        List<Post> resultNull = postService.getAllPost(null, null);
+        assertTrue(resultNull.get(0).getCreatedAt().isAfter(resultNull.get(1).getCreatedAt()));
+        
+        // Test random sort value defaults to desc
+        List<Post> resultRandom = postService.getAllPost(null, "random");
+        assertTrue(resultRandom.get(0).getCreatedAt().isAfter(resultRandom.get(1).getCreatedAt()));
+    }
 
+    @Test
+    void testGetPostSuccess() {
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        
+        Post result = postService.getPost(postId);
+        assertNotNull(result);
+        assertEquals(postId, result.getId());
+        assertTrue(result.isActive());
+    }
+
+    @Test
+    void testGetPostNotFound() {
+        when(postRepository.findById(any())).thenReturn(Optional.empty());
+        
+        Post result = postService.getPost(UUID.randomUUID());
+        assertNull(result);
+    }
+
+    @Test
+    void testGetPostDeleted() {
+        post.setDeletedAt(LocalDateTime.now());
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        
+        Post result = postService.getPost(postId);
+        assertNull(result);
+    }
+
+    @Test
+    void testUpdatePostSuccess() {
+        UpdatePostDto dto = UpdatePostDto.builder()
+                .id(postId)
+                .userProfileId(userId)
+                .imageUrl("https://example.com/updated-image.jpg")
+                .caption("Updated Caption")
+                .isActive(false)
+                .build();
+
+        when(postRepository.save(any(Post.class))).thenReturn(post);
+
+        Post updated = postService.updatePost(dto);
+        
         assertNotNull(updated);
-        assertNull(fakePostUpdate);
-        assertNull(noProfileUpdated);
+        assertEquals("Updated Caption", updated.getCaption());
+        assertEquals("https://example.com/updated-image.jpg", updated.getImageUrl());
+        assertFalse(updated.isActive());
+        assertNotNull(updated.getUpdatedAt());
+        verify(postRepository, times(1)).save(any(Post.class));
+    }
+
+    // NEW: Test updatePost with null isActive
+    @Test
+    void testUpdatePostWithNullIsActive() {
+        boolean originalIsActive = post.isActive();
+        
+        UpdatePostDto dto = UpdatePostDto.builder()
+                .id(postId)
+                .userProfileId(userId)
+                .imageUrl("https://example.com/updated-image.jpg")
+                .caption("Updated Caption")
+                .isActive(null) // Test null case
+                .build();
+
+        when(postRepository.save(any(Post.class))).thenReturn(post);
+
+        Post updated = postService.updatePost(dto);
+        
+        assertNotNull(updated);
+        assertEquals(originalIsActive, updated.isActive()); // Should remain unchanged
+        verify(postRepository, times(1)).save(any(Post.class));
     }
 
     @Test
-    void testDeletePost() {
-        Post created = postService.createPost(post);
-        Post deletedNoPost = postService.deletePost(UUID.randomUUID());
-        Post deleted = postService.deletePost(created.getId());
+    void testUpdatePostFailIfNotFound() {
+        UpdatePostDto dto = UpdatePostDto.builder()
+                .id(UUID.randomUUID())
+                .userProfileId(userId)
+                .imageUrl("https://example.com/image.jpg")
+                .caption("Updated")
+                .build();
 
+        when(postRepository.findById(any())).thenReturn(Optional.empty());
+        
+        Post updated = postService.updatePost(dto);
+        assertNull(updated);
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    void testUpdatePostFailIfPostDeleted() {
+        post.setDeletedAt(LocalDateTime.now());
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+
+        UpdatePostDto dto = UpdatePostDto.builder()
+                .id(postId)
+                .userProfileId(userId)
+                .imageUrl("https://example.com/image.jpg")
+                .caption("Updated")
+                .build();
+
+        Post updated = postService.updatePost(dto);
+        assertNull(updated);
+        verify(postRepository, never()).save(any());
+    }
+
+    // NEW: Test updatePost fail if user not found
+    @Test
+    void testUpdatePostFailIfUserNotFound() {
+        when(userProfileService.getUserProfile(userId)).thenReturn(null);
+
+        UpdatePostDto dto = UpdatePostDto.builder()
+                .id(postId)
+                .userProfileId(userId)
+                .imageUrl("https://example.com/image.jpg")
+                .caption("Updated")
+                .build();
+
+        Post updated = postService.updatePost(dto);
+        assertNull(updated);
+        verify(postRepository, never()).save(any());
+    }
+
+    // NEW: Test updatePost fail if user deleted
+    @Test
+    void testUpdatePostFailIfUserDeleted() {
+        UserProfile deletedUser = UserProfile.builder()
+                .id(userId)
+                .name("Deleted User")
+                .deletedAt(LocalDateTime.now())
+                .build();
+        
+        when(userProfileService.getUserProfile(userId)).thenReturn(deletedUser);
+
+        UpdatePostDto dto = UpdatePostDto.builder()
+                .id(postId)
+                .userProfileId(userId)
+                .imageUrl("https://example.com/image.jpg")
+                .caption("Updated")
+                .build();
+
+        Post updated = postService.updatePost(dto);
+        assertNull(updated);
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    void testDeletePostSuccess() {
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        when(postRepository.save(any(Post.class))).thenReturn(post);
+
+        Post deleted = postService.deletePost(postId);
+        
         assertNotNull(deleted);
-        assertNull(postService.getPost(created.getId()));
-        assertNull(deletedNoPost);
+        assertNotNull(deleted.getDeletedAt());
+        verify(postRepository, times(1)).save(any(Post.class));
     }
 
     @Test
-    void testLikePost() {
-        Post created = postService.createPost(post);
-        Post liked = postService.likePost(created.getId(), user.getId());
+    void testDeletePostNotFound() {
+        when(postRepository.findById(any())).thenReturn(Optional.empty());
+        
+        Post deleted = postService.deletePost(UUID.randomUUID());
+        assertNull(deleted);
+        verify(postRepository, never()).save(any());
+    }
 
-        assertNull(postService.likePost(UUID.randomUUID(), user.getId()));
+    @Test
+    void testDeletePostAlreadyDeleted() {
+        post.setDeletedAt(LocalDateTime.now());
+        when(postRepository.findById(postId)).thenReturn(Optional.of(post));
+        
+        Post deleted = postService.deletePost(postId);
+        assertNull(deleted);
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    void testLikePostFirstTime() {
+        if (post.getLikes() == null) {
+            post.setLikes(new ArrayList<>());
+        }
+        
+        Post liked = postService.likePost(postId, userId);
+        
         assertNotNull(liked);
         assertEquals(1, liked.getLikes().size());
-        assertNull(postService.likePost(created.getId(), UUID.randomUUID()));
+        assertEquals(user, liked.getLikes().get(0));
+        verify(postRepository, times(1)).save(any(Post.class));
+    }
 
-        Post unliked = postService.likePost(created.getId(), user.getId());
+    // NEW: Test likePost when likes list is initially null
+    @Test
+    void testLikePostWithNullLikesList() {
+        post.setLikes(null); // Explicitly set to null
+        
+        Post liked = postService.likePost(postId, userId);
+        
+        assertNotNull(liked);
+        assertNotNull(liked.getLikes());
+        assertEquals(1, liked.getLikes().size());
+        assertEquals(user, liked.getLikes().get(0));
+        verify(postRepository, times(1)).save(any(Post.class));
+    }
+
+    @Test
+    void testLikePostToggleOff() {
+        if (post.getLikes() == null) {
+            post.setLikes(new ArrayList<>());
+        }
+        post.getLikes().add(user);
+        
+        Post unliked = postService.likePost(postId, userId);
+        
         assertNotNull(unliked);
         assertEquals(0, unliked.getLikes().size());
+        verify(postRepository, times(1)).save(any(Post.class));
     }
+
+    @Test
+    void testLikePostPostNotFound() {
+        when(postRepository.findById(any())).thenReturn(Optional.empty());
+        
+        Post result = postService.likePost(UUID.randomUUID(), userId);
+        assertNull(result);
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    void testLikePostUserNotFound() {
+        when(userProfileService.getUserProfile(any())).thenReturn(null);
+        
+        Post result = postService.likePost(postId, UUID.randomUUID());
+        assertNull(result);
+        verify(postRepository, never()).save(any());
+    }
+
+    // NEW: Test likePost with deleted user
+    @Test
+    void testLikePostUserDeleted() {
+        UserProfile deletedUser = UserProfile.builder()
+                .id(userId)
+                .name("Deleted User")
+                .deletedAt(LocalDateTime.now())
+                .build();
+        
+        when(userProfileService.getUserProfile(userId)).thenReturn(deletedUser);
+        
+        Post result = postService.likePost(postId, userId);
+        assertNull(result);
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    void testToReadPostDto() {
+        if (post.getLikes() == null) {
+            post.setLikes(new ArrayList<>());
+        }
+        post.getLikes().add(user);
+        
+        ReadPostDto dto = postService.toReadPostDto(post);
+        
+        assertNotNull(dto);
+        assertEquals(postId, dto.getId());
+        assertEquals(userId, dto.getUserProfileId());
+        assertEquals("Test User", dto.getUserProfileName());
+        assertEquals("Test Post", dto.getCaption());
+        assertEquals(1, dto.getLikeCount());
+        assertEquals(1, dto.getLikes().size());
+        assertEquals("Test User", dto.getLikes().get(0));
+        assertNotNull(dto.getTimeAgo());
+        assertNotNull(dto.getCreatedAt());
+    }
+
+    // NEW: Test toReadPostDto with null likes
+    @Test
+    void testToReadPostDtoWithNullLikes() {
+        post.setLikes(null);
+        
+        ReadPostDto dto = postService.toReadPostDto(post);
+        
+        assertNotNull(dto);
+        assertEquals(0, dto.getLikeCount());
+        assertTrue(dto.getLikes().isEmpty());
+    }
+
+    // NEW: Test toReadPostDto with empty likes
+    @Test
+    void testToReadPostDtoWithEmptyLikes() {
+        post.setLikes(new ArrayList<>());
+        
+        ReadPostDto dto = postService.toReadPostDto(post);
+        
+        assertNotNull(dto);
+        assertEquals(0, dto.getLikeCount());
+        assertTrue(dto.getLikes().isEmpty());
+    }
+
+    @Test
+    void testGetAllPostsDto() {
+        Post post2 = Post.builder()
+                .id(UUID.randomUUID())
+                .userProfileId(userId)
+                .imageUrl("https://example.com/image2.jpg")
+                .caption("Second Post")
+                .createdAt(LocalDateTime.now().plusSeconds(1))
+                .updatedAt(LocalDateTime.now().plusSeconds(1))
+                .isActive(true)
+                .likes(new ArrayList<>())
+                .userProfile(user)
+                .build();
+
+        List<Post> posts = Arrays.asList(post, post2);
+        when(postRepository.findByDeletedAtIsNull()).thenReturn(posts);
+        
+        List<ReadPostDto> result = postService.getAllPostsDto(null, "desc");
+        
+        assertEquals(2, result.size());
+        assertEquals("Second Post", result.get(0).getCaption());
+        assertNotNull(result.get(0).getTimeAgo());
+        assertEquals(0, result.get(0).getLikeCount());
+    }
+
+    // NEW: Test getAllPostsDto with userId filter
+    @Test
+    void testGetAllPostsDtoWithUserIdFilter() {
+        post.setUserProfile(user);
+        List<Post> posts = Arrays.asList(post);
+        when(postRepository.findByUserProfileIdAndDeletedAtIsNull(userId)).thenReturn(posts);
+        
+        List<ReadPostDto> result = postService.getAllPostsDto(userId, "asc");
+        
+        assertEquals(1, result.size());
+        assertEquals("Test Post", result.get(0).getCaption());
+        assertEquals("Test User", result.get(0).getUserProfileName());
+    }
+
+    // NEW: Test all time ago scenarios
+    @Test
+    void testTimeAgoCalculationComplete() {
+        // Just Now (< 1 hour)
+        post.setCreatedAt(LocalDateTime.now().minusSeconds(30));
+        ReadPostDto dto1 = postService.toReadPostDto(post);
+        assertEquals("Just Now", dto1.getTimeAgo());
+
+        // Hours ago
+        post.setCreatedAt(LocalDateTime.now().minusHours(2));
+        ReadPostDto dto2 = postService.toReadPostDto(post);
+        assertEquals("2 hours ago", dto2.getTimeAgo());
+
+        // Days ago
+        post.setCreatedAt(LocalDateTime.now().minusDays(3));
+        ReadPostDto dto3 = postService.toReadPostDto(post);
+        assertEquals("3 days ago", dto3.getTimeAgo());
+
+        // Weeks ago
+        post.setCreatedAt(LocalDateTime.now().minusWeeks(2));
+        ReadPostDto dto4 = postService.toReadPostDto(post);
+        assertEquals("2 weeks ago", dto4.getTimeAgo());
+
+        // Months ago
+        post.setCreatedAt(LocalDateTime.now().minusMonths(3));
+        ReadPostDto dto5 = postService.toReadPostDto(post);
+        assertEquals("3 months ago", dto5.getTimeAgo());
+
+        // Years ago
+        post.setCreatedAt(LocalDateTime.now().minusYears(2));
+        ReadPostDto dto6 = postService.toReadPostDto(post);
+        assertEquals("2 years ago", dto6.getTimeAgo());
+    }
+
+    // NEW: Test boundary conditions for time calculation
+    @Test
+    void testTimeAgoBoundaryConditions() {
+        // Exactly 1 hour
+        post.setCreatedAt(LocalDateTime.now().minusHours(1));
+        ReadPostDto dto1 = postService.toReadPostDto(post);
+        assertEquals("1 hours ago", dto1.getTimeAgo());
+
+        // Exactly 1 day
+        post.setCreatedAt(LocalDateTime.now().minusDays(1));
+        ReadPostDto dto2 = postService.toReadPostDto(post);
+        assertEquals("1 days ago", dto2.getTimeAgo());
+
+        // Exactly 1 week
+        post.setCreatedAt(LocalDateTime.now().minusWeeks(1));
+        ReadPostDto dto3 = postService.toReadPostDto(post);
+        assertEquals("1 weeks ago", dto3.getTimeAgo());
+    }
+
 }
