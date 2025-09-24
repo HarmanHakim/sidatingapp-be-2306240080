@@ -122,7 +122,7 @@ class PostControllerTest {
     void testGetAllPostsDefaultSort() throws Exception {
         mockMvc.perform(get("/posts"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("post/view-all"))
+                .andExpect(view().name("posts/view-all"))
                 .andExpect(model().attributeExists("posts"));
     }
 
@@ -132,7 +132,7 @@ class PostControllerTest {
 
         mockMvc.perform(get("/posts"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("post/view-all"))
+                .andExpect(view().name("posts/view-all"))
                 .andExpect(model().attribute("posts", List.of()));
     }
 
@@ -141,7 +141,7 @@ class PostControllerTest {
     void testGetPostByIdFound() throws Exception {
         mockMvc.perform(get("/posts/{id}", existingPostId))
                 .andExpect(status().isOk())
-                .andExpect(view().name("post/detail"))
+                .andExpect(view().name("posts/detail"))
                 .andExpect(model().attributeExists("post"))
                 .andExpect(model().attributeExists( "userProfiles"));
     }
@@ -172,7 +172,7 @@ class PostControllerTest {
 
         mockMvc.perform(get("/posts/{id}", orphanPost.getId()))
                 .andExpect(status().isOk())
-                .andExpect(view().name("post/detail"))
+                .andExpect(view().name("posts/detail"))
                 .andExpect(model().attributeExists("post"))
                 .andExpect(model().attributeExists("userProfiles"));
     }
@@ -182,7 +182,7 @@ class PostControllerTest {
     void testFormCreatePost() throws Exception {
         mockMvc.perform(get("/posts/create"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("post/form"))
+                .andExpect(view().name("posts/form"))
                 .andExpect(model().attribute("isEdit", Boolean.FALSE))
                 .andExpect(model().attributeExists("post"))
                 .andExpect(model().attributeExists("userProfiles"));
@@ -229,7 +229,7 @@ void testCreatePostWithEmptyCaption() throws Exception {
     void testFormUpdatePostFound() throws Exception {
         mockMvc.perform(get("/posts/update/{id}", existingPostId))
                 .andExpect(status().isOk())
-                .andExpect(view().name("post/form"))
+                .andExpect(view().name("posts/form"))
                 .andExpect(model().attribute("isEdit", Boolean.TRUE))
                 .andExpect(model().attributeExists("post"))
                 .andExpect(model().attributeExists("userProfiles"))

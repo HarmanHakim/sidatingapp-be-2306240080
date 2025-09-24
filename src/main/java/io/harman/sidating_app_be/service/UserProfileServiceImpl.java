@@ -103,7 +103,7 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Override
     public String getMatchImage(int score) {
-        if (score <= 50) return "https://image.idntimes.com/post/20250707/1000267415_0946f347-af1f-4e17-99fd-ac4c6d8f0b33.jpg";
+        if (score <= 50) return "https://image.idntimes.com/posts/20250707/1000267415_0946f347-af1f-4e17-99fd-ac4c6d8f0b33.jpg";
         else if (score <= 70) return "https://pbs.twimg.com/media/FddMGmGVIAA1TZK.jpg";
         else if (score <= 90) return "https://i.pinimg.com/736x/ce/a8/9f/cea89fdbabc6429cc0cf192245ad75a5.jpg";
         else return "https://png.pngtree.com/background/20220714/original/pngtree-romantic-love-design-with-pink-picture-image_1606181.jpg";

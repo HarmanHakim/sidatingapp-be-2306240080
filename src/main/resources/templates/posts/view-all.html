@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>All Posts</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         .navbar {
             background-color: #343a40 !important;
@@ -47,17 +46,6 @@
         }
         .btn-action {
             margin-right: 5px;
-        }
-        
-        .like-stats {
-            border-top: 1px solid #dee2e6;
-            padding-top: 10px;
-        }
-        
-        .like-button-section {
-            border-top: 1px solid #dee2e6;
-            padding-top: 10px;
-            margin-top: 10px;
         }
     </style>
 </head>
@@ -137,8 +125,9 @@
                         <h6 class="mb-1" th:text="${post.userProfileName != null ? post.userProfileName : 'Unknown User'}">
                             User Name
                         </h6>
-                        <small class="text-muted" th:text="${post.timeAgo != null ? post.timeAgo : 'Just now'}">
-                            Posted time ago
+                        <small class="text-muted" 
+                            th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'dd MMM yyyy HH:mm') : 'Unknown date'}">
+                            Posted on date
                         </small>
                     </div>
                 </div>
@@ -152,48 +141,26 @@
             <!-- Post Caption -->
             <div class="post-footer">
                 <p th:text="${post.caption != null ? post.caption : ''}" class="mb-3">Post caption goes here...</p>
-                
-                <!-- Like Stats -->
+
+                <!-- Like Count -->
                 <div class="mb-3">
-                    <span class="text-muted me-3">
-                        <i class="fas fa-heart text-danger"></i>
-                        <strong th:text="${post.likeCount != null ? post.likeCount : 0}">0</strong> likes
-                    </span>
-                    <div th:if="${post.likes != null and !post.likes.isEmpty()}" class="mt-2">
-                        <small class="text-muted">
-                            Liked by: 
-                            <span th:each="likeName, iterStat : ${post.likes}" 
-                                  th:text="${likeName + (iterStat.last ? '' : ', ')}">User</span>
-                        </small>
-                    </div>
+                    <strong>Likes:</strong> <span th:text="${post.likeCount != null ? post.likeCount : 0}">0</span>
                 </div>
-                
+
+                <!-- Posted At -->
+                <div class="mb-3">
+                    <strong>Posted:</strong> <span th:text="${post.timeAgo != null ? post.timeAgo : 'Just now'}">Just now</span>
+                </div>
+
                 <!-- Action Buttons -->
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex">
-                        <a th:href="@{/posts/{id}(id=${post.id})}" class="btn btn-info btn-sm btn-action">View</a>
-                        <a th:href="@{/posts/update/{id}(id=${post.id})}" class="btn btn-warning btn-sm btn-action">Edit</a>
-                        <form th:action="@{/posts/delete/{id}(id=${post.id})}" method="post" style="display: inline;">
-                            <input type="hidden" name="_method" value="delete">
-                            <button type="submit" class="btn btn-danger btn-sm" 
-                                    onclick="return confirm('Are you sure you want to delete this post?')">Delete</button>
-                        </form>
-                    </div>
-                    
-                    <!-- Quick Like Button -->
-                    <div>
-                        <form th:action="@{/posts/{id}/like(id=${post.id})}" method="post" style="display: inline;">
-                            <select name="userId" class="form-select form-select-sm d-inline-block" style="width: auto;" required>
-                                <option value="">Select User</option>
-                                <option th:each="user : ${userProfiles}" 
-                                        th:value="${user.id}" 
-                                        th:text="${user.name}">User</option>
-                            </select>
-                            <button type="submit" class="btn btn-outline-danger btn-sm ms-2">
-                                <i class="fas fa-heart"></i> Like
-                            </button>
-                        </form>
-                    </div>
+                <div class="d-flex">
+                    <a th:href="@{/posts/{id}(id=${post.id})}" class="btn btn-info btn-sm btn-action">View</a>
+                    <a th:href="@{/posts/update/{id}(id=${post.id})}" class="btn btn-warning btn-sm btn-action">Edit</a>
+                    <form th:action="@{/posts/delete/{id}(id=${post.id})}" method="post" style="display: inline;">
+                        <input type="hidden" name="_method" value="delete">
+                        <button type="submit" class="btn btn-danger btn-sm" 
+                                onclick="return confirm('Are you sure you want to delete this post?')">Delete</button>
+                    </form>
                 </div>
             </div>
         </div>

@@ -72,8 +72,7 @@ public class PostController {
             return "error/404";
         }
 
-        ReadPostDto postDto = postService.toReadPostDto(post);
-        model.addAttribute("post", postDto);
+        model.addAttribute("post", post);
         model.addAttribute("userProfiles", userProfileService.getAllUserProfile());
         return "posts/detail";
     }

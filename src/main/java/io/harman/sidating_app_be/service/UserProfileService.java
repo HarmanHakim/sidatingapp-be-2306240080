@@ -1,12 +1,11 @@
 package io.harman.sidating_app_be.service;
 
-import io.harman.sidating_app_be.dto.user.CreateUserDto;
-import io.harman.sidating_app_be.dto.user.UpdateUserDto;
-import io.harman.sidating_app_be.dto.user.ReadUserProfileDto;
-import io.harman.sidating_app_be.model.UserProfile;
-
 import java.util.List;
 import java.util.UUID;
+
+import io.harman.sidating_app_be.dto.user.CreateUserDto;
+import io.harman.sidating_app_be.dto.user.ReadUserProfileDto;
+import io.harman.sidating_app_be.dto.user.UpdateUserDto;
 import io.harman.sidating_app_be.model.UserProfile;
 
 public interface UserProfileService {
