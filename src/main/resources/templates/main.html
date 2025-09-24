@@ -6,41 +6,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Main Page</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-300 via-blue-400 to-cyan-400 min-h-screen flex items-center justify-center">
+<body class="bg-gray-50 min-h-screen">
 
-    <div class="text-center bg-white p-8 rounded-lg shadow-2xl max-w-md w-full mx-4">
-        <!-- Header -->
-        <div class="bg-blue-600 text-white py-4 px-6 rounded-t-lg -mx-8 -mt-8 mb-8">
-            <h1 class="text-2xl font-bold">Hello World from Spring Boot MVC!</h1>
-        </div>
-        
-        <!-- Welcome Banner -->
-        <div class="bg-blue-500 text-white py-4 px-6 rounded-lg mb-8">
-            <h2 class="text-xl font-semibold">
-                Welcome to SiDating ❤️ 🚀
-            </h2>
-            <!-- Display the name from the model -->
-            <p class="text-lg mt-2">
-                Hello, <span th:text="${name}">SiDating User</span>!
-            </p>
-        </div>
-        
-        <!-- Navigation Buttons -->
-        <div class="space-y-4">
-            <div>
-                <a href="/profile" class="inline-block bg-green-500 hover:bg-green-600 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 w-full">
+    <!-- Navigation -->
+    <div th:insert="~{fragments/navbar :: navbar}"></div>
+
+    <!-- Main Content -->
+    <div class="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
+        <div class="text-center max-w-md w-full">
+            <!-- Welcome Section -->
+            <div class="mb-12">
+                <h1 class="text-3xl font-light text-gray-900 mb-4">
+                    Hello World from Spring Boot MVC!
+                </h1>
+                <div class="mb-8">
+                    <h2 class="text-xl font-medium text-gray-700 mb-2">
+                        Welcome to SiDating
+                    </h2>
+                    <!-- Display the name from the model -->
+                    <p class="text-gray-600">
+                        Hello, <span th:text="${name}" class="font-medium">SiDating User</span>!
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Navigation Buttons -->
+            <div class="space-y-3">
+                <a href="/profile" class="block w-full py-3 px-6 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors">
                     Go to Profiles
                 </a>
-            </div>
-            <div>
-                <a href="/posts" class="inline-block bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 px-8 rounded-lg transition duration-200 w-full">
+                <a href="/posts" class="block w-full py-3 px-6 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
                     Go to Posts
                 </a>
             </div>

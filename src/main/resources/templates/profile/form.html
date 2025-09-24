@@ -3,51 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <title th:text="${isEdit} ? 'Update Profile' : 'Create Profile'">Form Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
       body {
-        font-family: Arial, sans-serif;
-        background: #f9f9f9;
-        margin: 20px;
-      }
-      .container {
-        background: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        max-width: 500px;
-        margin: auto;
-      }
-      h1 {
-        text-align: center;
-      }
-      label {
-        display: block;
-        margin-top: 10px;
-        font-weight: bold;
-      }
-      input,
-      textarea,
-      select {
-        width: 100%;
-        padding: 8px;
-        margin-top: 5px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      }
-      button {
-        margin-top: 15px;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        background: #28a745;
-        color: #fff;
-        cursor: pointer;
-      }
-      button:hover {
-        background: #218838;
-      }
-      a {
-        display: inline-block;
+        font-family: 'Inter', sans-serif;
         margin-top: 10px;
         text-decoration: none;
         background: #007bff;
@@ -60,49 +20,93 @@
       }
     </style>
   </head>
-  <body>
-    <div class="container">
-      <form th:action="${isEdit ? '/profile/update/'+ profileId : '/profile/create'}" th:method="${isEdit ? 'put' : 'post'}" th:object="${userProfile}">
-        <h1 th:text="${isEdit} ? 'Update Profile' : 'Create Profile'">Form Profile</h1>
-        <input type="hidden" name="_method" value="put" th:if="${isEdit}" />
+  <body class="bg-gray-50">
+    <!-- Navigation Bar -->
+    <div th:insert="~{fragments/navbar :: navbar}"></div>
+    
+    <div class="max-w-2xl mx-auto px-4 py-8">
+      <div class="bg-white rounded-lg border border-gray-200 p-8">
+        <h1 class="text-2xl font-light text-gray-900 text-center mb-8" th:text="${isEdit} ? 'Update Profile' : 'Create Profile'">Form Profile</h1>
+        
+        <form th:action="${isEdit ? '/profile/update/'+ profileId : '/profile/create'}" 
+              th:method="${isEdit ? 'put' : 'post'}" 
+              th:object="${userProfile}" 
+              class="space-y-6">
+          <input type="hidden" name="_method" value="put" th:if="${isEdit}" />
 
-        <label>Name</label>
-        <input type="text" th:field="*{name}" required />
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+            <input type="text" th:field="*{name}" id="name" required 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent" />
+          </div>
 
-        <label>Nickname</label>
-        <input type="text" th:field="*{nickname}" required />
+          <div>
+            <label for="nickname" class="block text-sm font-medium text-gray-700 mb-2">Nickname</label>
+            <input type="text" th:field="*{nickname}" id="nickname" required 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent" />
+          </div>
 
-        <label>Email</label>
-        <input type="email" th:field="*{email}" required />
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <input type="email" th:field="*{email}" id="email" required 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent" />
+          </div>
 
-        <label>Phone Number</label>
-        <input type="text" th:field="*{phoneNumber}" required />
+          <div>
+            <label for="phoneNumber" class="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+            <input type="text" th:field="*{phoneNumber}" id="phoneNumber" required 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent" />
+          </div>
 
-        <label>Location</label>
-        <input type="text" th:field="*{location}" />
+          <div>
+            <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+            <input type="text" th:field="*{location}" id="location" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent" />
+          </div>
 
-        <label>Gender</label>
-        <select th:field="*{gender}">
-          <option value="MALE">Male</option>
-          <option value="FEMALE">Female</option>
-        </select>
+          <div>
+            <label for="gender" class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+            <select th:field="*{gender}" id="gender" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent">
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+            </select>
+          </div>
 
-        <label>Birthdate</label>
-        <input type="date" th:field="*{birthdate}" />
+          <div>
+            <label for="birthdate" class="block text-sm font-medium text-gray-700 mb-2">Birthdate</label>
+            <input type="date" th:field="*{birthdate}" id="birthdate" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent" />
+          </div>
 
-        <label>Hobbies</label>
-        <input type="text" th:field="*{hobbies}" />
+          <div>
+            <label for="hobbies" class="block text-sm font-medium text-gray-700 mb-2">Hobbies</label>
+            <input type="text" th:field="*{hobbies}" id="hobbies" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent" />
+          </div>
 
-        <label>Interests</label>
-        <input type="text" th:field="*{interests}" />
+          <div>
+            <label for="interests" class="block text-sm font-medium text-gray-700 mb-2">Interests</label>
+            <input type="text" th:field="*{interests}" id="interests" 
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent" />
+          </div>
 
-        <label>Bio</label>
-        <textarea th:field="*{bio}" rows="3"></textarea>
+          <div>
+            <label for="bio" class="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+            <textarea th:field="*{bio}" id="bio" rows="4" 
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"></textarea>
+          </div>
 
-        <button type="submit">Save</button>
-      </form>
-
-      <a th:href="@{/profile}">Cancel</a>
+          <div class="flex justify-center gap-3 pt-4">
+            <button type="submit" class="px-6 py-2 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 transition-colors">
+              Save
+            </button>
+            <a th:href="@{/profile}" class="px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
     </div>
   </body>
 </html>
