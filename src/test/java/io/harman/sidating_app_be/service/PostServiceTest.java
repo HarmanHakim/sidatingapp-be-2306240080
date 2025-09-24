@@ -154,7 +154,6 @@ class PostServiceTest {
         assertTrue(result.get(0).getCreatedAt().isBefore(result.get(1).getCreatedAt()));
     }
 
-    // NEW: Test edge cases for sorting
     @Test
     void testGetAllPostSortingEdgeCases() {
         Post post1 = Post.builder()
@@ -232,7 +231,6 @@ class PostServiceTest {
         verify(postRepository, times(1)).save(any(Post.class));
     }
 
-    // NEW: Test updatePost with null isActive
     @Test
     void testUpdatePostWithNullIsActive() {
         boolean originalIsActive = post.isActive();
@@ -287,7 +285,6 @@ class PostServiceTest {
         verify(postRepository, never()).save(any());
     }
 
-    // NEW: Test updatePost fail if user not found
     @Test
     void testUpdatePostFailIfUserNotFound() {
         when(userProfileService.getUserProfile(userId)).thenReturn(null);
@@ -304,7 +301,6 @@ class PostServiceTest {
         verify(postRepository, never()).save(any());
     }
 
-    // NEW: Test updatePost fail if user deleted
     @Test
     void testUpdatePostFailIfUserDeleted() {
         UserProfile deletedUser = UserProfile.builder()
@@ -372,7 +368,6 @@ class PostServiceTest {
         verify(postRepository, times(1)).save(any(Post.class));
     }
 
-    // NEW: Test likePost when likes list is initially null
     @Test
     void testLikePostWithNullLikesList() {
         post.setLikes(null); // Explicitly set to null
@@ -418,7 +413,6 @@ class PostServiceTest {
         verify(postRepository, never()).save(any());
     }
 
-    // NEW: Test likePost with deleted user
     @Test
     void testLikePostUserDeleted() {
         UserProfile deletedUser = UserProfile.builder()
@@ -455,7 +449,6 @@ class PostServiceTest {
         assertNotNull(dto.getCreatedAt());
     }
 
-    // NEW: Test toReadPostDto with null likes
     @Test
     void testToReadPostDtoWithNullLikes() {
         post.setLikes(null);
@@ -467,7 +460,6 @@ class PostServiceTest {
         assertTrue(dto.getLikes().isEmpty());
     }
 
-    // NEW: Test toReadPostDto with empty likes
     @Test
     void testToReadPostDtoWithEmptyLikes() {
         post.setLikes(new ArrayList<>());
@@ -504,7 +496,6 @@ class PostServiceTest {
         assertEquals(0, result.get(0).getLikeCount());
     }
 
-    // NEW: Test getAllPostsDto with userId filter
     @Test
     void testGetAllPostsDtoWithUserIdFilter() {
         post.setUserProfile(user);
@@ -518,7 +509,6 @@ class PostServiceTest {
         assertEquals("Test User", result.get(0).getUserProfileName());
     }
 
-    // NEW: Test all time ago scenarios
     @Test
     void testTimeAgoCalculationComplete() {
         // Just Now (< 1 hour)
@@ -552,7 +542,6 @@ class PostServiceTest {
         assertEquals("2 years ago", dto6.getTimeAgo());
     }
 
-    // NEW: Test boundary conditions for time calculation
     @Test
     void testTimeAgoBoundaryConditions() {
         // Exactly 1 hour

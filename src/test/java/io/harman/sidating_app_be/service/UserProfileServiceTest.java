@@ -149,7 +149,6 @@ class UserProfileServiceTest {
         verify(userProfileRepository, times(1)).save(any(UserProfile.class));
     }
 
-    // NEW: Test update user profile not found
     @Test
     void testUpdateUserProfileNotFound() {
         UpdateUserDto updateDto = UpdateUserDto.builder()
@@ -165,7 +164,6 @@ class UserProfileServiceTest {
         verify(userProfileRepository, never()).save(any());
     }
 
-    // NEW: Test update user profile already deleted
     @Test
     void testUpdateUserProfileAlreadyDeleted() {
         user1.setDeletedAt(LocalDateTime.now());
@@ -204,7 +202,6 @@ class UserProfileServiceTest {
         verify(userProfileRepository, never()).save(any());
     }
 
-    // NEW: Test delete user profile already deleted
     @Test
     void testDeleteUserProfileAlreadyDeleted() {
         user1.setDeletedAt(LocalDateTime.now());
@@ -282,7 +279,6 @@ class UserProfileServiceTest {
         verify(userProfileRepository, times(1)).findByDeletedAtIsNull();
     }
 
-    // NEW: Test getAllUserProfile empty list
     @Test
     void testGetAllUserProfileEmpty() {
         when(userProfileRepository.findByDeletedAtIsNull()).thenReturn(Arrays.asList());
@@ -318,7 +314,6 @@ class UserProfileServiceTest {
         assertNull(result);
     }
 
-    // NEW: Test toReadUserProfileDto with all age groups
     @Test
     void testToReadUserProfileDtoAllAgeGroups() {
         // Test 18-25 age group
@@ -382,7 +377,6 @@ class UserProfileServiceTest {
         assertEquals("45+", seniorDto.getAgeGroup());
     }
 
-    // NEW: Test toReadUserProfileDto boundary conditions
     @Test
     void testToReadUserProfileDtoAgeBoundaries() {
         // Test exactly 18 years old
@@ -431,7 +425,6 @@ class UserProfileServiceTest {
         assertEquals("26-35", dto26.getAgeGroup());
     }
 
-    // NEW: Test toReadUserProfileDto complete mapping
     @Test
     void testToReadUserProfileDtoCompleteMapping() {
         ReadUserProfileDto dto = service.toReadUserProfileDto(user1);
@@ -455,7 +448,6 @@ class UserProfileServiceTest {
         assertTrue(dto.isActive());
     }
 
-    // NEW: Test getAllUserProfilesDto
     @Test
     void testGetAllUserProfilesDto() {
         List<UserProfile> profiles = Arrays.asList(user1, user2);
@@ -484,7 +476,6 @@ class UserProfileServiceTest {
         verify(userProfileRepository, times(1)).findByDeletedAtIsNull();
     }
 
-    // NEW: Test searchProfilesByName
     @Test
     void testSearchProfilesByName() {
         String searchName = "John";
@@ -500,7 +491,6 @@ class UserProfileServiceTest {
                 .findByNameContainingIgnoreCaseAndDeletedAtIsNull(searchName);
     }
 
-    // NEW: Test searchProfilesByName with null name
     @Test
     void testSearchProfilesByNameWithNull() {
         List<UserProfile> allProfiles = Arrays.asList(user1, user2);
@@ -513,7 +503,6 @@ class UserProfileServiceTest {
         verify(userProfileRepository, never()).findByNameContainingIgnoreCaseAndDeletedAtIsNull(any());
     }
 
-    // NEW: Test searchProfilesByName with blank name
     @Test
     void testSearchProfilesByNameWithBlank() {
         List<UserProfile> allProfiles = Arrays.asList(user1, user2);
@@ -526,7 +515,6 @@ class UserProfileServiceTest {
         verify(userProfileRepository, never()).findByNameContainingIgnoreCaseAndDeletedAtIsNull(any());
     }
 
-    // NEW: Test searchProfilesByName with empty string
     @Test
     void testSearchProfilesByNameWithEmpty() {
         List<UserProfile> allProfiles = Arrays.asList(user1, user2);
@@ -539,7 +527,6 @@ class UserProfileServiceTest {
         verify(userProfileRepository, never()).findByNameContainingIgnoreCaseAndDeletedAtIsNull(any());
     }
 
-    // NEW: Test searchProfilesByName no matches
     @Test
     void testSearchProfilesByNameNoMatches() {
         String searchName = "NonExistent";
