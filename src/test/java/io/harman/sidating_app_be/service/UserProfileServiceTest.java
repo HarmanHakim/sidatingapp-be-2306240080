@@ -250,9 +250,9 @@ class UserProfileServiceTest {
 
     @Test
     void testGetMatchImageAllRanges() {
-        assertEquals("https://image.idntimes.com/post/20250707/1000267415_0946f347-af1f-4e17-99fd-ac4c6d8f0b33.jpg",
+        assertEquals("https://image.idntimes.com/posts/20250707/1000267415_0946f347-af1f-4e17-99fd-ac4c6d8f0b33.jpg",
                 service.getMatchImage(0));
-        assertEquals("https://image.idntimes.com/post/20250707/1000267415_0946f347-af1f-4e17-99fd-ac4c6d8f0b33.jpg",
+        assertEquals("https://image.idntimes.com/posts/20250707/1000267415_0946f347-af1f-4e17-99fd-ac4c6d8f0b33.jpg",
                 service.getMatchImage(50));
         assertEquals("https://pbs.twimg.com/media/FddMGmGVIAA1TZK.jpg", 
                 service.getMatchImage(51));

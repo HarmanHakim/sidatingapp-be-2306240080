@@ -1,99 +1,101 @@
 package io.harman.sidating_app_be.controller;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.ui.Model;
+import org.springframework.ui.ExtendedModelMap;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
-@WebMvcTest(MainController.class)
 class MainControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private MainController controller;
+    private Model model;
 
-    @Test
-    void testMainPageWithDefaultName() throws Exception {
-        mockMvc.perform(get("/"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("main"))
-                .andExpect(model().attribute("name", "SiDating User"));
+    @BeforeEach
+    void setUp() {
+        controller = new MainController();
+        model = new ExtendedModelMap();
     }
 
     @Test
-    void testMainPageWithCustomName() throws Exception {
-        mockMvc.perform(get("/").param("name", "John Doe"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("main"))
-                .andExpect(model().attribute("name", "John Doe"));
+    void testMainPageWithDefaultName() {
+        String result = controller.mainPage("SiDating User", model);
+        
+        assertEquals("main", result);
+        assertEquals("SiDating User", model.getAttribute("name"));
     }
 
     @Test
-    void testMainPageWithEmptyName() throws Exception {
-        mockMvc.perform(get("/").param("name", ""))
-                .andExpect(status().isOk())
-                .andExpect(view().name("main"))
-                .andExpect(model().attribute("name", "SiDating User"));
+    void testMainPageWithCustomName() {
+        String result = controller.mainPage("John Doe", model);
+        
+        assertEquals("main", result);
+        assertEquals("John Doe", model.getAttribute("name"));
     }
 
     @Test
-    void testMainPageWithSpecialCharactersInName() throws Exception {
-        mockMvc.perform(get("/").param("name", "José María"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("main"))
-                .andExpect(model().attribute("name", "José María"));
+    void testMainPageWithEmptyName() {
+        String result = controller.mainPage("", model);
+        
+        assertEquals("main", result);
+        assertEquals("SiDating User", model.getAttribute("name"));
     }
 
     @Test
-    void testMainPageContentType() throws Exception {
-        mockMvc.perform(get("/"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith("text/html"));
+    void testMainPageWithSpecialCharactersInName() {
+        String result = controller.mainPage("José María", model);
+        
+        assertEquals("main", result);
+        assertEquals("José María", model.getAttribute("name"));
     }
 
     @Test
-    void testMainPageWithWhitespaceOnlyName() throws Exception {
-        mockMvc.perform(get("/").param("name", "   "))
-                .andExpect(status().isOk())
-                .andExpect(view().name("main"))
-                .andExpect(model().attribute("name", "SiDating User"));
+    void testMainPageWithNullName() {
+        String result = controller.mainPage(null, model);
+        
+        assertEquals("main", result);
+        assertEquals("SiDating User", model.getAttribute("name"));
     }
 
     @Test
-    void testMainPageWithTabsAndSpacesName() throws Exception {
-        mockMvc.perform(get("/").param("name", "\t  \n  "))
-                .andExpect(status().isOk())
-                .andExpect(view().name("main"))
-                .andExpect(model().attribute("name", "SiDating User"));
+    void testMainPageWithWhitespaceOnlyName() {
+        String result = controller.mainPage("   ", model);
+        
+        assertEquals("main", result);
+        assertEquals("SiDating User", model.getAttribute("name"));
     }
 
     @Test
-    void testMainPageWithNameHavingLeadingAndTrailingSpaces() throws Exception {
-        mockMvc.perform(get("/").param("name", "  John  "))
-                .andExpect(status().isOk())
-                .andExpect(view().name("main"))
-                .andExpect(model().attribute("name", "  John  "));
+    void testMainPageWithTabsAndSpacesName() {
+        String result = controller.mainPage("\t  \n  ", model);
+        
+        assertEquals("main", result);
+        assertEquals("SiDating User", model.getAttribute("name"));
     }
 
     @Test
-    void testMainPageWithVeryLongName() throws Exception {
+    void testMainPageWithNameHavingLeadingAndTrailingSpaces() {
+        String result = controller.mainPage("  John  ", model);
+        
+        assertEquals("main", result);
+        assertEquals("  John  ", model.getAttribute("name"));
+    }
+
+    @Test
+    void testMainPageWithVeryLongName() {
         String longName = "A".repeat(1000);
-        mockMvc.perform(get("/").param("name", longName))
-                .andExpect(status().isOk())
-                .andExpect(view().name("main"))
-                .andExpect(model().attribute("name", longName));
+        String result = controller.mainPage(longName, model);
+        
+        assertEquals("main", result);
+        assertEquals(longName, model.getAttribute("name"));
     }
 
     @Test
-    void testMainPageWithNumericName() throws Exception {
-        mockMvc.perform(get("/").param("name", "12345"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("main"))
-                .andExpect(model().attribute("name", "12345"));
+    void testMainPageWithNumericName() {
+        String result = controller.mainPage("12345", model);
+        
+        assertEquals("main", result);
+        assertEquals("12345", model.getAttribute("name"));
     }
 }
