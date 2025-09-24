@@ -96,20 +96,36 @@
         <div class="post-container">
             <div class="d-flex align-items-center mb-4">
                 <div class="user-avatar me-3">
-                    <span th:text="${post.userProfile != null ? post.userProfile.name.substring(0,1).toUpperCase() : 'U'}">M</span>
+                    <span th:text="${post.userProfileName != null ? post.userProfileName.substring(0,1).toUpperCase() : 'U'}">M</span>
                 </div>
                 <div>
-                    <h5 class="mb-0" th:text="${post.userProfile != null ? post.userProfile.name : 'Unknown User'}">Muhammad Hafiz</h5>
-                    <div class="post-meta" th:text="${post.createdAt != null ? 'Posted on ' + post.createdAt : 'Posted date not available'}">
-                        Posted on September 10, 2025 at 14:30
+                    <h5 class="mb-0" th:text="${post.userProfileName != null ? post.userProfileName : 'Unknown User'}">Muhammad Hafiz</h5>
+                    <div class="post-meta">
+                        <span class="time-ago" th:text="${post.timeAgo != null ? post.timeAgo : 'Just now'}">
+                            Posted time ago
+                        </span>
                     </div>
                 </div>
             </div>
             
-            <p class="mb-4" th:text="${post.caption}">Beautiful sunset today!</p>
+                                    <p th:text="${post.caption}" class="mb-4">Beautiful sunset from the mountain top. Nature never fails to amaze me!</p>
             
             <div th:if="${post.imageUrl != null && !post.imageUrl.isEmpty()}" class="mb-4">
                 <img th:src="${post.imageUrl}" class="post-image" alt="Post Image">
+            </div>
+            
+            <!-- Post Stats -->
+            <div class="d-flex justify-content-between align-items-center mb-4 p-3" style="background-color: #f8f9fa; border-radius: 8px;">
+                <div class="d-flex gap-4">
+                    <span class="text-muted">
+                        <i class="fas fa-heart text-danger"></i>
+                        <strong th:text="${post.likeCount != null ? post.likeCount : 0}">0</strong> likes
+                    </span>
+                    <span class="text-muted">
+                        <i class="fas fa-eye text-primary"></i>
+                        <strong th:text="${post.views ?: 0}">0</strong> views
+                    </span>
+                </div>
             </div>
             
             <!-- Like Section -->
@@ -131,12 +147,17 @@
                 </form>
             </div>
             
-            <div style="margin-top:20px;">
-                <b>Liked by:</b>
-                <span th:if="${post.likes == null or #lists.isEmpty(post.likes)}">No likes yet.</span>
-                <ul th:if="${post.likes != null and !#lists.isEmpty(post.likes)}">
-                    <li th:each="user : ${post.likes}" th:text="${user.name}"></li>
-                </ul>
+            <!-- Liked by section -->
+            <div class="mt-4 p-3" style="background-color: #f8f9fa; border-radius: 8px;">
+                <h6 class="mb-2"><i class="fas fa-heart text-danger me-2"></i>Liked by:</h6>
+                <div th:if="${post.likes == null or #lists.isEmpty(post.likes)}" class="text-muted">
+                    <i class="fas fa-heart-broken me-2"></i>No likes yet. Be the first to like this post!
+                </div>
+                <div th:if="${post.likes != null and !#lists.isEmpty(post.likes)}" class="d-flex flex-wrap gap-2">
+                    <span th:each="userName : ${post.likes}" class="badge bg-primary">
+                        <i class="fas fa-user me-1"></i><span th:text="${userName}">User</span>
+                    </span>
+                </div>
             </div>
             
             <hr>
@@ -146,5 +167,81 @@
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Function to calculate time ago
+        function timeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            
+            if (diffInSeconds < 60) {
+                return diffInSeconds + " seconds ago";
+            }
+            
+            const diffInMinutes = Math.floor(diffInSeconds / 60);
+            if (diffInMinutes < 60) {
+                return diffInMinutes + " minute" + (diffInMinutes === 1 ? "" : "s") + " ago";
+            }
+            
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            if (diffInHours < 24) {
+                return diffInHours + " hour" + (diffInHours === 1 ? "" : "s") + " ago";
+            }
+            
+            const diffInDays = Math.floor(diffInHours / 24);
+            if (diffInDays < 7) {
+                return diffInDays + " day" + (diffInDays === 1 ? "" : "s") + " ago";
+            }
+            
+            const diffInWeeks = Math.floor(diffInDays / 7);
+            if (diffInWeeks < 4) {
+                return diffInWeeks + " week" + (diffInWeeks === 1 ? "" : "s") + " ago";
+            }
+            
+            const diffInMonths = Math.floor(diffInDays / 30);
+            if (diffInMonths < 12) {
+                return diffInMonths + " month" + (diffInMonths === 1 ? "" : "s") + " ago";
+            }
+            
+            const diffInYears = Math.floor(diffInDays / 365);
+            return diffInYears + " year" + (diffInYears === 1 ? "" : "s") + " ago";
+        }
+        
+        // Update time-ago element
+        document.addEventListener('DOMContentLoaded', function() {
+            const timeElement = document.querySelector('.time-ago');
+            
+            if (timeElement) {
+                const createdAtStr = timeElement.getAttribute('data-created');
+                if (createdAtStr) {
+                    try {
+                        // Parse the datetime string from Thymeleaf
+                        const createdAt = new Date(createdAtStr);
+                        const timeAgoText = timeAgo(createdAt);
+                        timeElement.textContent = timeAgoText;
+                        
+                        // Add original date as tooltip
+                        timeElement.setAttribute('title', 'Posted on ' + createdAt.toLocaleString());
+                    } catch (error) {
+                        console.log('Could not parse date:', createdAtStr);
+                    }
+                }
+                
+                // Update every minute
+                setInterval(function() {
+                    const createdAtStr = timeElement.getAttribute('data-created');
+                    if (createdAtStr) {
+                        try {
+                            const createdAt = new Date(createdAtStr);
+                            const timeAgoText = timeAgo(createdAt);
+                            timeElement.textContent = timeAgoText;
+                        } catch (error) {
+                            // Keep original text if parsing fails
+                        }
+                    }
+                }, 60000); // Update every minute
+            }
+        });
+    </script>
 </body>
 </html>

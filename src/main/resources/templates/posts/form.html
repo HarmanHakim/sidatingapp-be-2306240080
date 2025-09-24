@@ -1,84 +1,122 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-  <head>
-    <meta charset="UTF-8" />
-    <title th:text="${isEdit} ? 'Update Post' : 'Create Post'">Form Post</title>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit} ? 'Edit Post' : 'Create New Post'">Create/Edit Post</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-      body {
-        font-family: Arial, sans-serif;
-        background: #f9f9f9;
-        margin: 20px;
-      }
-      .container {
-        background: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        max-width: 500px;
-        margin: auto;
-      }
-      h1 {
-        text-align: center;
-      }
-      label {
-        display: block;
-        margin-top: 10px;
-        font-weight: bold;
-      }
-      input,
-      textarea,
-      select {
-        width: 100%;
-        padding: 8px;
-        margin-top: 5px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      }
-      button {
-        margin-top: 15px;
-        padding: 8px 16px;
-        border: none;
-        border-radius: 4px;
-        background: #28a745;
-        color: #fff;
-        cursor: pointer;
-      }
-      button:hover {
-        background: #218838;
-      }
-      a {
-        display: inline-block;
-        margin-top: 10px;
-        text-decoration: none;
-        background: #007bff;
-        color: #fff;
-        padding: 6px 12px;
-        border-radius: 4px;
-      }
-      a:hover {
-        background: #0056b3;
-      }
+        .navbar { background-color: #343a40 !important; }
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
     </style>
-  </head>
-  <body>
-    <div class="container">
-      <form th:action="${isEdit ? '/posts/update/'+ post.id : '/posts/create'}" th:method="${isEdit ? 'put' : 'post'}" th:object="${post}">
-        <h1 th:text="${isEdit} ? 'Update Post' : 'Create Post'">Form Post</h1>
-        <input type="hidden" name="_method" value="put" th:if="${isEdit}" />
-
-        <select name="userProfileId" required>
-          <option th:each="user : ${userProfiles}" th:value="${user.id}" th:text="${user.name}" th:selected="${post.userProfile != null and user.id == post.userProfile.id}"></option>
-        </select>
-
-        <label>Caption</label>
-        <textarea th:field="*{caption}" rows="5" required></textarea>
-
-        <label>Image URL</label>
-        <input type="text" th:field="*{imageUrl}" />
-
-        <button type="submit" class="btn-primary" th:text="${isEdit} ? 'Update' : 'Create'">Submit</button>
-        <a href="/posts" class="btn-warning">Back to List</a>
-      </form>
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1"
+              th:text="${isEdit} ? 'Edit Post' : 'Create New Post'">Create/Edit</span>
     </div>
-  </body>
+</nav>
+
+<div class="container mt-4">
+    <div class="form-container">
+        <h3 class="text-center mb-4" th:text="${isEdit} ? 'Edit Post' : 'Create New Post'">Create New Post</h3>
+
+        <form th:action="${isEdit} ? '/posts/update/' + ${postId} : '/posts/create'"
+              method="post" th:object="${post}">
+            
+            <!-- Hidden PUT method for update -->
+            <input th:if="${isEdit}" type="hidden" name="_method" value="put">
+
+            <!-- User -->
+            <div class="mb-3">
+                <label for="userProfileId" class="form-label"><strong>User</strong></label>
+                <select class="form-select" id="userProfileId" name="userProfileId"
+                        th:field="*{userProfileId}" required>
+                    <option value="">Select User</option>
+                    <option th:each="user : ${userProfiles}" 
+                            th:value="${user.id}" 
+                            th:text="${user.name}"
+                            th:selected="${post.userProfileId == user.id}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Caption -->
+            <div class="mb-3">
+                <label for="caption" class="form-label"><strong>Caption</strong></label>
+                <textarea class="form-control" id="caption" name="caption"
+                          th:field="*{caption}" rows="4" placeholder="Write something..."
+                          required></textarea>
+            </div>
+
+            <!-- Image URL -->
+            <div class="mb-3">
+                <label for="imageUrl" class="form-label"><strong>Image URL</strong></label>
+                <input type="url" class="form-control" id="imageUrl" name="imageUrl"
+                       th:field="*{imageUrl}" placeholder="http://...">
+            </div>
+
+            <!-- Image Preview -->
+            <div class="mb-3" id="imagePreview" style="display: none;">
+                <label class="form-label"><strong>Image Preview</strong></label>
+                <div class="border rounded p-2">
+                    <img id="previewImg" src="" alt="Image preview" class="img-fluid" style="max-height: 200px;">
+                </div>
+            </div>
+
+            <!-- isActive checkbox only for edit -->
+            <div class="mb-3" th:if="${isEdit}">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="isActive" name="isActive"
+                           th:field="*{isActive}">
+                    <label class="form-check-label" for="isActive">Active</label>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center gap-3">
+                <button type="submit" class="btn btn-success px-4" th:text="${isEdit} ? 'Update' : 'Create'">Create</button>
+                <a href="/posts" class="btn btn-secondary px-4">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Image preview
+    const imageInput = document.getElementById('imageUrl');
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+
+    function showPreview(url) {
+        if (url) {
+            previewImg.src = url;
+            preview.style.display = 'block';
+            previewImg.onerror = () => preview.style.display = 'none';
+        } else preview.style.display = 'none';
+    }
+
+    imageInput.addEventListener('input', e => showPreview(e.target.value));
+    window.addEventListener('load', () => showPreview(imageInput.value));
+
+    // Basic form validation
+    document.querySelector('form').addEventListener('submit', function(e){
+        if (!document.getElementById('userProfileId').value) {
+            alert('Please select a user.');
+            e.preventDefault();
+        } else if (!document.getElementById('caption').value.trim()) {
+            alert('Please enter a caption.');
+            e.preventDefault();
+        }
+    });
+</script>
+</body>
 </html>

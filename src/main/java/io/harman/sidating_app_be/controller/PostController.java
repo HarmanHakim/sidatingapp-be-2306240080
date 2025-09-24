@@ -60,7 +60,7 @@ public class PostController {
         model.addAttribute("selectedUserId", userId != null ? userId : "all");
         model.addAttribute("selectedOrder", order != null ? order : "newest"); 
 
-        return "post/view-all";
+        return "posts/view-all";
     }
     
     @GetMapping("/{id}")
@@ -72,9 +72,10 @@ public class PostController {
             return "error/404";
         }
 
-        model.addAttribute("post", post);
+        ReadPostDto postDto = postService.toReadPostDto(post);
+        model.addAttribute("post", postDto);
         model.addAttribute("userProfiles", userProfileService.getAllUserProfile());
-        return "post/detail";
+        return "posts/detail";
     }
 
     @GetMapping("/create")
@@ -82,7 +83,7 @@ public class PostController {
         model.addAttribute("post", new CreatePostDto());
         model.addAttribute("userProfiles", userProfileService.getAllUserProfile());
         model.addAttribute("isEdit", false);
-        return "post/form";
+        return "posts/form";
     }
 
     @PostMapping("/create")
@@ -126,7 +127,7 @@ public class PostController {
         model.addAttribute("postId", id);
         model.addAttribute("isEdit", true);
 
-        return "post/form";
+        return "posts/form";
     }
 
     @PutMapping("/update/{id}")

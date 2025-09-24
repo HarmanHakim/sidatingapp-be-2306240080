@@ -1,19 +1,20 @@
 package io.harman.sidating_app_be.service;
 
-import io.harman.sidating_app_be.dto.post.ReadPostDto;
-import io.harman.sidating_app_be.dto.post.CreatePostDto;
-import io.harman.sidating_app_be.dto.post.UpdatePostDto;
-import io.harman.sidating_app_be.model.Post;
-import io.harman.sidating_app_be.model.UserProfile;
-import io.harman.sidating_app_be.repository.PostRepository;
-import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import io.harman.sidating_app_be.dto.post.CreatePostDto;
+import io.harman.sidating_app_be.dto.post.ReadPostDto;
+import io.harman.sidating_app_be.dto.post.UpdatePostDto;
+import io.harman.sidating_app_be.model.Post;
+import io.harman.sidating_app_be.model.UserProfile;
+import io.harman.sidating_app_be.repository.PostRepository;
 
 @Service
 public class PostServiceImpl implements PostService {

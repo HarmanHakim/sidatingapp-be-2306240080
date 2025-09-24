@@ -76,6 +76,149 @@
         background: #f8d7da;
         color: #721c24;
       }
+      
+      /* Search Container Styles */
+      .search-container {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      }
+      
+      .search-form {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+      }
+      
+      .search-input {
+        padding: 10px 15px;
+        border: 2px solid #ced4da;
+        border-radius: 25px;
+        font-size: 16px;
+        min-width: 300px;
+        flex: 1;
+        outline: none;
+        transition: all 0.3s ease;
+      }
+      
+      .search-input:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+        transform: translateY(-1px);
+      }
+      
+      .search-btn {
+        padding: 10px 20px;
+        border-radius: 25px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+      }
+      
+      .search-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      .clear-btn {
+        padding: 10px 15px;
+        border-radius: 25px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+      }
+      
+      .clear-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      }
+      
+      .search-info {
+        font-size: 14px;
+        color: #6c757d;
+        font-style: italic;
+        text-align: center;
+        margin-top: 10px;
+      }
+      
+      /* No Results Styles */
+      .no-results {
+        text-align: center;
+        padding: 60px 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        margin-top: 30px;
+        border: 2px dashed #dee2e6;
+      }
+      
+      .no-results-content {
+        max-width: 400px;
+        margin: 0 auto;
+      }
+      
+      .no-results-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.7;
+      }
+      
+      .no-results h3 {
+        color: #6c757d;
+        margin-bottom: 15px;
+        font-size: 1.5rem;
+      }
+      
+      .no-results p {
+        color: #6c757d;
+        margin-bottom: 25px;
+        line-height: 1.5;
+      }
+      
+      .no-results-actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      
+      .no-results-actions a {
+        padding: 12px 24px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      /* Responsive design */
+      @media (max-width: 768px) {
+        .search-form {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        
+        .search-input {
+          min-width: 100%;
+          margin-bottom: 10px;
+        }
+        
+        .search-btn, .clear-btn {
+          width: 100%;
+        }
+        
+        .no-results-actions {
+          flex-direction: column;
+        }
+        
+        .no-results-actions a {
+          width: 100%;
+        }
+      }
     </style>
   </head>
   <body>
@@ -85,37 +228,162 @@
       <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
       <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
 
+      <!-- Search Bar -->
+      <div class="search-container">
+        <form method="get" th:action="@{/profile}" class="search-form">
+          <input 
+            type="text" 
+            name="search" 
+            th:value="${search}"
+            placeholder="Search profiles by name..." 
+            class="search-input"
+            autocomplete="off">
+          <button type="submit" class="btn-primary search-btn">
+            🔍 Search
+          </button>
+          <a th:href="@{/profile}" class="btn-danger clear-btn">
+            ❌ Clear
+          </a>
+        </form>
+        
+        <div class="search-info" th:if="${search != null and !search.isEmpty()}">
+          <span th:text="'Search results for: &quot;' + ${search} + '&quot; (' + ${userProfiles.size()} + ' found)'"></span>
+        </div>
+        <div class="search-info" th:if="${search == null or search.isEmpty()}">
+          <span th:text="'Showing all profiles (' + ${userProfiles.size()} + ' total)'"></span>
+        </div>
+      </div>
+
       <a class="btn-primary" th:href="@{/profile/create}">Tambah Profile</a>
       <a class="btn-primary" th:href="@{/profile/match}">Love Match</a>
 
 
-      <table>
-        <thead>
-          <tr>
-            <th>Nama</th>
-            <th>Nickname</th>
-            <th>Email</th>
-            <th>Lokasi</th>
-            <th>Aksi</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr th:each="profile : ${userProfiles}">
-            <td th:text="${profile.name}"></td>
-            <td th:text="${profile.nickname}"></td>
-            <td th:text="${profile.email}"></td>
-            <td th:text="${profile.location}"></td>
-            <td>
-              <a class="btn-primary" th:href="@{'/profile/' + ${profile.id}}">Detail</a>
-              <a class="btn-warning" th:href="@{'/profile/update/' + ${profile.id}}">Edit</a>
-              <form th:action="@{'/profile/delete/' + ${profile.id}}" method="post" style="display: inline">
-                <input type="hidden" name="_method" value="delete" />
-                <button type="submit" class="btn-danger">Hapus</button>
-              </form>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- Results Table -->
+      <div th:if="${userProfiles != null and !userProfiles.isEmpty()}">
+        <table>
+          <thead>
+            <tr>
+              <th>Nama</th>
+              <th>Nickname</th>
+              <th>Email</th>
+              <th>Lokasi</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr th:each="profile : ${userProfiles}">
+              <td th:text="${profile.name}"></td>
+              <td th:text="${profile.nickname}"></td>
+              <td th:text="${profile.email}"></td>
+              <td th:text="${profile.location}"></td>
+              <td>
+                <a class="btn-primary" th:href="@{'/profile/' + ${profile.id}}">👁️ Detail</a>
+                <a class="btn-warning" th:href="@{'/profile/update/' + ${profile.id}}">✏️ Edit</a>
+                <form th:action="@{'/profile/delete/' + ${profile.id}}" method="post" style="display: inline">
+                  <input type="hidden" name="_method" value="delete" />
+                  <button type="submit" class="btn-danger" onclick="return confirm('Are you sure you want to delete this profile?')">🗑️ Hapus</button>
+                </form>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- No Results Message -->
+      <div th:if="${userProfiles == null or userProfiles.isEmpty()}" class="no-results">
+        <div class="no-results-content">
+          <div class="no-results-icon">🔍</div>
+          <h3 th:if="${search != null and !search.isEmpty()}">No profiles found</h3>
+          <h3 th:if="${search == null or search.isEmpty()}">No profiles available</h3>
+          <p th:if="${search != null and !search.isEmpty()}" th:text="'No profiles match your search &quot;' + ${search} + '&quot;. Try a different search term.'"></p>
+          <p th:if="${search == null or search.isEmpty()}">There are no profiles in the system yet.</p>
+          <div class="no-results-actions">
+            <a class="btn-primary" th:href="@{/profile/create}">➕ Create First Profile</a>
+            <a th:if="${search != null and !search.isEmpty()}" class="btn-warning" th:href="@{/profile}">📋 View All Profiles</a>
+          </div>
+        </div>
+      </div>
     </div>
+    
+    <script>
+      // Enhanced search functionality
+      document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.querySelector('.search-input');
+        const searchForm = document.querySelector('.search-form');
+        
+        if (searchInput) {
+          // Focus on search input when page loads if there's a search term
+          if (searchInput.value) {
+            searchInput.focus();
+            searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+          }
+          
+          // Add keyboard shortcuts
+          document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+              e.preventDefault();
+              searchInput.focus();
+              searchInput.select();
+            }
+            
+            // Escape to clear search
+            if (e.key === 'Escape' && document.activeElement === searchInput) {
+              if (searchInput.value) {
+                searchInput.value = '';
+                searchForm.submit();
+              }
+            }
+          });
+          
+          // Add search input animation and validation
+          searchInput.addEventListener('input', function(e) {
+            // Remove extra spaces and trim
+            this.value = this.value.trimStart();
+            
+            // Add visual feedback for empty search
+            if (this.value.trim() === '') {
+              this.style.borderColor = '#ced4da';
+            } else {
+              this.style.borderColor = '#28a745';
+            }
+          });
+          
+          // Prevent empty search submission
+          searchForm.addEventListener('submit', function(e) {
+            const searchValue = searchInput.value.trim();
+            if (searchValue === '') {
+              e.preventDefault();
+              // Redirect to show all profiles
+              window.location.href = '/profile';
+              return false;
+            }
+            searchInput.value = searchValue; // Set cleaned value
+          });
+        }
+        
+        // Add confirmation for delete buttons with profile name
+        document.querySelectorAll('.btn-danger').forEach(function(button) {
+          button.addEventListener('click', function(e) {
+            const row = this.closest('tr');
+            const profileName = row ? row.cells[0].textContent : 'this profile';
+            const confirmed = confirm(`Are you sure you want to delete "${profileName}"? This action cannot be undone.`);
+            if (!confirmed) {
+              e.preventDefault();
+              return false;
+            }
+          });
+        });
+        
+        // Add loading state for search
+        const searchButton = document.querySelector('.search-btn');
+        if (searchButton && searchForm) {
+          searchForm.addEventListener('submit', function() {
+            searchButton.innerHTML = '⏳ Searching...';
+            searchButton.disabled = true;
+          });
+        }
+      });
+    </script>
   </body>
 </html>
