@@ -1,4 +1,4 @@
-package io.harman.sidating_app_be.dto.restdto.response;
+package io.harman.sidating_app_be.restdto.response;
 
 import java.util.Date;
 

@@ -1,4 +1,4 @@
-package io.harman.sidating_app_be.dto.restdto.response.userProfile;
+package io.harman.sidating_app_be.restdto.response.userProfile;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
