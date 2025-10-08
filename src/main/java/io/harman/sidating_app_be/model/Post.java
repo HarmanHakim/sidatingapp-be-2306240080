@@ -7,7 +7,6 @@ import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
@@ -30,7 +29,6 @@ import lombok.NoArgsConstructor;
 public class Post {
 
     @Id
-    @GeneratedValue
     private UUID id;
 
     @Column(name = "user_profile_id", nullable = false)
