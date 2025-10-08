@@ -1,30 +1,33 @@
 package io.harman.sidating_app_be.restcontroller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.mockito.ArgumentMatchers.any;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import io.harman.sidating_app_be.restService.UserProfileRestService;
-import io.harman.sidating_app_be.restdto.request.userProfile.AddUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.request.userProfile.UpdateUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.response.userProfile.UserProfileResponseDTO;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import io.harman.sidating_app_be.restService.UserProfileRestService;
+import io.harman.sidating_app_be.restdto.request.userProfile.AddUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.request.userProfile.UpdateUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.response.userProfile.UserProfileResponseDTO;
 
 @SpringBootTest
 @AutoConfigureMockMvc
