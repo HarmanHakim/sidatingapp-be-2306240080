@@ -36,6 +36,7 @@ public class UserProfileRestServiceImpl implements UserProfileRestService {
                 .email(dto.getEmail())
                 .phoneNumber(dto.getPhoneNumber())
                 .interests(convertListToString(dto.getInterests()))
+                .isActive(true)
                 .build();
 
         return convertToUserProfileResponseDTO(userProfileRepository.save(userProfile));
@@ -51,7 +52,7 @@ public class UserProfileRestServiceImpl implements UserProfileRestService {
     }
 
     @Override
-    public List<UserProfileResponseDTO> searchUserProfilesByName(String name) {
+    public List<UserProfileResponseDTO> searchUserProfileByName(String name) {
         List<UserProfile> userProfiles;
 
         // If search term is empty or null, return all profiles
@@ -159,3 +160,4 @@ public class UserProfileRestServiceImpl implements UserProfileRestService {
                 .build();
     }
 }
+

@@ -13,7 +13,7 @@ public interface UserProfileRestService {
     
     List<UserProfileResponseDTO> getAllUserProfile();
     
-    List<UserProfileResponseDTO> searchUserProfilesByName(String name);
+    List<UserProfileResponseDTO> searchUserProfileByName(String name);
     
     UserProfileResponseDTO getUserProfile(UUID id);
     
