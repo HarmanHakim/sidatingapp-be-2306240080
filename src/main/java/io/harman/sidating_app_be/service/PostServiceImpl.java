@@ -37,6 +37,7 @@ public Post createPost(CreatePostDto dto) {
     }
 
     Post post = Post.builder()
+        .id(UUID.randomUUID())
             .userProfile(user)
             .userProfileId(user.getId())
             .imageUrl(dto.getImageUrl())

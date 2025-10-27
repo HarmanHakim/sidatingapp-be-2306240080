@@ -2,6 +2,7 @@ package io.harman.sidating_app_be.restcontroller;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,16 @@ public class PostRestController {
     public static final String CREATE_POST = BASE_URL + "/create";
     public static final String LIKE_POST = BASE_URL + "/like";
     public static final String DELETE_POST = BASE_URL + "/delete";
+
+    @GetMapping("/random")
+    public ResponseEntity<?> random() {
+        Random random = new Random();
+        var theBoolean = random.nextBoolean();
+        if (theBoolean) {
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
 
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
