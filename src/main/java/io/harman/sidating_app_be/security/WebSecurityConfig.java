@@ -57,7 +57,7 @@ public class WebSecurityConfig {
                 .anyRequest().authenticated()
             )
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
             .exceptionHandling(e -> e
                 .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 .accessDeniedHandler(new AccessDeniedHandler() {

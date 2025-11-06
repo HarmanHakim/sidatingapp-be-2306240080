@@ -96,12 +96,11 @@ public class UserProfileRestController {
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
         }
-
         UserProfileResponseDTO userProfile = userProfileRestService.createUserProfile(addUserProfileRequestDTO);
 
         if (userProfile == null) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            baseResponseDTO.setMessage("User Profile Gagal Dibuat");
+            baseResponseDTO.setMessage("username sudah digunakan. Silakan pilih username lain.");
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }

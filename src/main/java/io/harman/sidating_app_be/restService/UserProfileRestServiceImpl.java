@@ -33,7 +33,6 @@ public class UserProfileRestServiceImpl implements UserProfileRestService {
 
     @Override
     public UserProfileResponseDTO createUserProfile(AddUserProfileRequestDTO dto) {
-        // Check if username already exists
         if (userProfileRepository.findByUsername(dto.getUsername()) != null) {
             return null;
         }
