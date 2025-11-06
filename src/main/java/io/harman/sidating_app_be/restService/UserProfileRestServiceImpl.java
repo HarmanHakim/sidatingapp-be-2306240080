@@ -8,9 +8,12 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import io.harman.sidating_app_be.model.Role;
 import io.harman.sidating_app_be.model.UserProfile;
+import io.harman.sidating_app_be.repository.RoleRepository;
 import io.harman.sidating_app_be.repository.UserProfileRepository;
 import io.harman.sidating_app_be.restdto.request.userProfile.AddUserProfileRequestDTO;
 import io.harman.sidating_app_be.restdto.request.userProfile.UpdateUserProfileRequestDTO;
@@ -21,11 +24,30 @@ public class UserProfileRestServiceImpl implements UserProfileRestService {
 
     @Autowired
     private UserProfileRepository userProfileRepository;
+    
+    @Autowired
+    private RoleRepository roleRepository;
+    
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public UserProfileResponseDTO createUserProfile(AddUserProfileRequestDTO dto) {
+        // Check if username already exists
+        if (userProfileRepository.findByUsername(dto.getUsername()) != null) {
+            return null;
+        }
+        
+        // Determine role: if roleName is not provided or empty, default to "User"
+        String roleName = (dto.getRoleName() == null || dto.getRoleName().trim().isEmpty()) ? "User" : dto.getRoleName();
+        
+        Role role = roleRepository.findByRoleName(roleName)
+                .orElseThrow(() -> new RuntimeException("Role not found with name: " + roleName));
+        
         UserProfile userProfile = UserProfile.builder()
-                .id(UUID.randomUUID())
+                .username(dto.getUsername())
+                .password(passwordEncoder.encode(dto.getPassword()))
+                .role(role)
                 .name(dto.getName())
                 .nickname(dto.getNickname())
                 .birthdate(dto.getBirthdate())

@@ -17,7 +17,9 @@ import com.github.javafaker.Name;
 
 import io.harman.sidating_app_be.dto.post.CreatePostDto;
 import io.harman.sidating_app_be.dto.user.CreateUserDto;
+import io.harman.sidating_app_be.model.Role;
 import io.harman.sidating_app_be.model.UserProfile;
+import io.harman.sidating_app_be.repository.RoleRepository;
 import io.harman.sidating_app_be.service.PostService;
 import io.harman.sidating_app_be.service.UserProfileService;
 
@@ -30,9 +32,28 @@ public class SidatingAppBeApplication {
     }
 
     @Bean
-    public CommandLineRunner createDummyData(UserProfileService userProfileService, PostService postService) {
+    public CommandLineRunner createDummyData(
+            UserProfileService userProfileService, 
+            PostService postService,
+            RoleRepository roleRepository) {
         return args -> {
             System.out.println("Generating dummy user profiles and posts...");
+            
+            // Create roles first if they don't exist
+            Role userRole = roleRepository.findByRoleName("User")
+                    .orElseGet(() -> {
+                        Role role = new Role();
+                        role.setRoleName("User");
+                        return roleRepository.save(role);
+                    });
+            
+            Role adminRole = roleRepository.findByRoleName("Admin")
+                    .orElseGet(() -> {
+                        Role role = new Role();
+                        role.setRoleName("Admin");
+                        return roleRepository.save(role);
+                    });
+            
             Faker faker = new Faker(new Locale("id_ID"));
 
             // Create 100 user profiles and keep references

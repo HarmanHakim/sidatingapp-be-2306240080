@@ -59,6 +59,9 @@ class UserProfileRestControllerTest {
 
     private AddUserProfileRequestDTO createValidAddDTO() {
         return new AddUserProfileRequestDTO(
+                "testuser",                   // username
+                "password123",                // password
+                "User",                       // roleName
                 "Tester",                     // name
                 "desc",                       // nickname / bio
                 LocalDate.of(2000, 1, 1),     // birthdate

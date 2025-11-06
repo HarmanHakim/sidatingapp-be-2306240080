@@ -3,9 +3,12 @@ package io.harman.sidating_app_be.service;
 import io.harman.sidating_app_be.dto.user.CreateUserDto;
 import io.harman.sidating_app_be.dto.user.UpdateUserDto;
 import io.harman.sidating_app_be.dto.user.ReadUserProfileDto;
+import io.harman.sidating_app_be.model.Role;
 import io.harman.sidating_app_be.model.UserProfile;
+import io.harman.sidating_app_be.repository.RoleRepository;
 import io.harman.sidating_app_be.repository.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -21,11 +24,28 @@ public class UserProfileServiceImpl implements UserProfileService {
 
     @Autowired
     private UserProfileRepository userProfileRepository;
+    
+    @Autowired
+    private RoleRepository roleRepository;
+    
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public UserProfile createUserProfile(CreateUserDto dto) {
+        // Get or create default User role
+        Role userRole = roleRepository.findByRoleName("User")
+                .orElseThrow(() -> new RuntimeException("Default User role not found. Please initialize roles first."));
+        
+        // Generate default username and password based on email
+        String username = dto.getEmail().split("@")[0];
+        String password = passwordEncoder.encode("password123"); // Default password
+        
         UserProfile userProfile = UserProfile.builder()
-                .id(UUID.randomUUID())
+                // DO NOT set ID manually - let Hibernate generate it
+                .username(username)
+                .password(password)
+                .role(userRole)
                 .name(dto.getName())
                 .nickname(dto.getNickname())
                 .birthdate(dto.getBirthdate())

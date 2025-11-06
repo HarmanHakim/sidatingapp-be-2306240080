@@ -2,6 +2,7 @@ package io.harman.sidating_app_be.restservice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -15,8 +16,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import io.harman.sidating_app_be.model.UserProfile;
+import io.harman.sidating_app_be.repository.RoleRepository;
 import io.harman.sidating_app_be.repository.UserProfileRepository;
 import io.harman.sidating_app_be.restService.UserProfileRestServiceImpl;
 import io.harman.sidating_app_be.restdto.request.userProfile.AddUserProfileRequestDTO;
@@ -27,6 +30,12 @@ public class UserProfileRestServiceTest {
 
     @Mock
     private UserProfileRepository userProfileRepository;
+    
+    @Mock
+    private RoleRepository roleRepository;
+    
+    @Mock
+    private BCryptPasswordEncoder passwordEncoder;
 
     @InjectMocks
     private UserProfileRestServiceImpl userProfileRestService;
@@ -52,11 +61,14 @@ public class UserProfileRestServiceTest {
     @Test
     void testCreateUserProfile() {
         AddUserProfileRequestDTO dto = new AddUserProfileRequestDTO(
+                "janeuser", "password123", "User",
                 "Jane Doe", "jane", LocalDate.of(2000, 1, 1),
                 List.of("reading"), "Female", "City", "Bio",
                 "jane@example.com", "12345", List.of("music"), true);
 
         when(userProfileRepository.save(any())).thenAnswer(i -> i.getArguments()[0]);
+        when(userProfileRepository.findByUsername(anyString())).thenReturn(null);
+        when(roleRepository.findByRoleName(anyString())).thenReturn(java.util.Optional.of(new io.harman.sidating_app_be.model.Role()));
 
         UserProfileResponseDTO result = userProfileRestService.createUserProfile(dto);
 

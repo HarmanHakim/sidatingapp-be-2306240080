@@ -14,6 +14,15 @@ import java.util.List;
 @Data
 public class AddUserProfileRequestDTO {
     
+    @NotBlank(message = "Username is required")
+    private String username;
+
+    @NotBlank(message = "Password is required")
+    private String password;
+
+    // Role name is optional - defaults to "User" if not provided
+    private String roleName;
+    
     @NotBlank(message = "Name is required")
     private String name;
     

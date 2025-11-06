@@ -18,5 +18,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, UUID> 
     Optional<UserProfile> findById(UUID id);
 
     List <UserProfile> findByNameContainingIgnoreCase(String name);
+    
+    UserProfile findByUsername(String username);
 
 }
