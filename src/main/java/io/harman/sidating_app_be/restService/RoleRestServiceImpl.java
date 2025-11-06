@@ -1,10 +1,8 @@
-package io.harman.sidating_app_be.restService;
+package io.harman.sidating_app_be.restservice;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import io.harman.sidating_app_be.model.Role;
 import io.harman.sidating_app_be.repository.RoleRepository;
 

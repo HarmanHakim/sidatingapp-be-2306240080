@@ -6,9 +6,9 @@ import io.harman.sidating_app_be.model.Role;
 import io.harman.sidating_app_be.model.UserProfile;
 import io.harman.sidating_app_be.repository.UserProfileRepository;
 import io.harman.sidating_app_be.restdto.request.security.LoginJwtRequestDTO;
-import io.harman.sidating_app_be.restdto.request.userProfile.AddUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.response.userProfile.UserProfileResponseDTO;
-import io.harman.sidating_app_be.restService.UserProfileRestService;
+import io.harman.sidating_app_be.restdto.request.userprofile.AddUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.response.userprofile.UserProfileResponseDTO;
+import io.harman.sidating_app_be.restservice.UserProfileRestService;
 import io.harman.sidating_app_be.security.jwt.JwtUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,7 +78,7 @@ class AuthRestControllerTest {
         
         testRole = new Role();
         testRole.setId(1L);
-        testRole.setRoleName("User");
+        testRole.setRoleName("ROLE_USER");
 
         testUser = new UserProfile();
         testUser.setId(userId);

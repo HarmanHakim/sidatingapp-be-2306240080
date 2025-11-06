@@ -1,30 +1,21 @@
 package io.harman.sidating_app_be.restcontroller;
 
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import io.harman.sidating_app_be.restdto.BaseResponseDTO;
+import io.harman.sidating_app_be.restdto.request.userprofile.AddUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.request.userprofile.UpdateUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.response.userprofile.UserProfileResponseDTO;
 
+import io.harman.sidating_app_be.restservice.UserProfileRestService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import io.harman.sidating_app_be.restService.UserProfileRestService;
-import io.harman.sidating_app_be.restdto.request.userProfile.AddUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.request.userProfile.UpdateUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.response.BaseResponseDTO;
-import io.harman.sidating_app_be.restdto.response.userProfile.UserProfileResponseDTO;
-import jakarta.validation.Valid;
+import org.springframework.web.bind.annotation.*;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api")
@@ -45,9 +36,9 @@ public class UserProfileRestController {
 
         List<UserProfileResponseDTO> listUserProfile;
 
-        if (search != null) {
-            listUserProfile = userProfileRestService.searchUserProfileByName(search);
-        } else {
+        if(search != null) {
+            listUserProfile = userProfileRestService.searchUserProfilesByName(search);
+        }else{
             listUserProfile = userProfileRestService.getAllUserProfile();
         }
 
@@ -96,6 +87,8 @@ public class UserProfileRestController {
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
         }
+
+
         UserProfileResponseDTO userProfile = userProfileRestService.createUserProfile(addUserProfileRequestDTO);
 
         if (userProfile == null) {
@@ -132,6 +125,7 @@ public class UserProfileRestController {
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
         }
+
 
         try {
             UserProfileResponseDTO userProfile = userProfileRestService.updateUserProfile(updateUserProfileRequestDTO);

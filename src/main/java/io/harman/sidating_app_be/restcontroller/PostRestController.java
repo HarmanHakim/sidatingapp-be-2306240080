@@ -1,72 +1,34 @@
 package io.harman.sidating_app_be.restcontroller;
 
+import io.harman.sidating_app_be.restdto.BaseResponseDTO;
+import io.harman.sidating_app_be.restdto.request.post.*;
+import io.harman.sidating_app_be.restdto.response.post.*;
+import io.harman.sidating_app_be.restservice.PostRestService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import io.harman.sidating_app_be.restService.PostRestService;
-import io.harman.sidating_app_be.restdto.request.post.CreatePostRequestDTO;
-import io.harman.sidating_app_be.restdto.request.post.DeletePostRequestDTO;
-import io.harman.sidating_app_be.restdto.request.post.LikePostRequestDTO;
-import io.harman.sidating_app_be.restdto.request.post.UpdatePostRequestDTO;
-import io.harman.sidating_app_be.restdto.response.BaseResponseDTO;
-import io.harman.sidating_app_be.restdto.response.post.PostResponseDTO;
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api")
 public class PostRestController {
+    
     @Autowired
     private PostRestService postRestService;
 
     public static final String BASE_URL = "/posts";
     public static final String VIEW_POST_DETAIL = BASE_URL + "/{id}";
-    public static final String UPDATE_POST = BASE_URL + "/update";
     public static final String CREATE_POST = BASE_URL + "/create";
-    public static final String LIKE_POST = BASE_URL + "/like";
+    public static final String UPDATE_POST = BASE_URL + "/update";
     public static final String DELETE_POST = BASE_URL + "/delete";
-
-    @GetMapping("/random")
-    public ResponseEntity<?> random() {
-        Random random = new Random();
-        var theBoolean = random.nextBoolean();
-        if (theBoolean) {
-            return ResponseEntity.ok().build();
-        }
-        return ResponseEntity.badRequest().build();
-    }
-
-
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<BaseResponseDTO<?>> handleEmptyBody(HttpMessageNotReadableException ex) {
-        var baseResponseDTO = new BaseResponseDTO<>();
-        
-        baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
-        baseResponseDTO.setMessage("User Profile ID is required; Image URL is required; Caption is required; ");
-        baseResponseDTO.setData(null);
-        baseResponseDTO.setTimestamp(new Date());
-        
-        return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
-    }
-
+    public static final String LIKE_POST = BASE_URL + "/{id}/like";
     @GetMapping(BASE_URL)
     public ResponseEntity<BaseResponseDTO<List<PostResponseDTO>>> getAllPost(
             @RequestParam(required = false) UUID userId,
@@ -91,7 +53,6 @@ public class PostRestController {
         else {
             posts = postRestService.getAllPosts();
         }
-
         baseResponseDTO.setStatus(HttpStatus.OK.value());
         baseResponseDTO.setData(posts);
         baseResponseDTO.setMessage("Posts retrieved successfully");
@@ -100,31 +61,50 @@ public class PostRestController {
     }
 
     @GetMapping(VIEW_POST_DETAIL)
-    public ResponseEntity<BaseResponseDTO<PostResponseDTO>> getPost(@PathVariable UUID id) {
+    public ResponseEntity<BaseResponseDTO<PostResponseDTO>> getPostDetail(@PathVariable UUID id) {
         var baseResponseDTO = new BaseResponseDTO<PostResponseDTO>();
 
-        PostResponseDTO post = postRestService.getPostById(id);
+        try {
+            PostResponseDTO post = postRestService.getPostById(id);
 
-        if (post == null) {
-            baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
-            baseResponseDTO.setMessage("Post Tidak Ditemukan");
+            if (post == null) {
+                baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+                baseResponseDTO.setMessage("Post Tidak Ditemukan");
+                baseResponseDTO.setTimestamp(new Date());
+                return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+            }
+
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setData(post);
+            baseResponseDTO.setMessage("Detail Post Berhasil Ditemukan");
             baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
-        }
-        baseResponseDTO.setStatus(HttpStatus.OK.value());
-        baseResponseDTO.setData(post);
-        baseResponseDTO.setMessage("Data Post Berhasil Ditemukan");
-        baseResponseDTO.setTimestamp(new Date());
-        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
-    }
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
 
+        } catch (Exception ex) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + ex.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
     @PostMapping(CREATE_POST)
     public ResponseEntity<BaseResponseDTO<PostResponseDTO>> createPost(
-            @Valid @RequestBody CreatePostRequestDTO createPostRequestDTO,
+            @RequestBody(required = false) @Valid CreatePostRequestDTO createPostRequestDTO,
             BindingResult bindingResult) {
 
         var baseResponseDTO = new BaseResponseDTO<PostResponseDTO>();
 
+        // Check if request body is null
+        if (createPostRequestDTO == null) {
+            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponseDTO.setMessage("Required request body is missing");
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(null);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+        }
+
+        // Validasi input fields
         if (bindingResult.hasFieldErrors()) {
             StringBuilder errorMessages = new StringBuilder();
             List<FieldError> errors = bindingResult.getFieldErrors();
@@ -139,21 +119,23 @@ public class PostRestController {
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
         }
 
+        try {
+            PostResponseDTO post = postRestService.createPost(createPostRequestDTO);
 
-        PostResponseDTO post = postRestService.createPost(createPostRequestDTO);
-
-        if (post == null) {
-            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            baseResponseDTO.setMessage("Post Gagal Dibuat");
+            // Kalau sukses
+            baseResponseDTO.setStatus(HttpStatus.CREATED.value());
+            baseResponseDTO.setData(post);
+            baseResponseDTO.setMessage("Data Post Berhasil Dibuat");
             baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.CREATED);
+            
+        } catch (Exception ex) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Failed to create post: " + ex.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(null);
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        baseResponseDTO.setStatus(HttpStatus.CREATED.value());
-        baseResponseDTO.setData(post);
-        baseResponseDTO.setMessage("Data Post Berhasil Dibuat");
-        baseResponseDTO.setTimestamp(new Date());
-        return new ResponseEntity<>(baseResponseDTO, HttpStatus.CREATED);
     }
 
     @PutMapping(UPDATE_POST)
@@ -163,6 +145,7 @@ public class PostRestController {
 
         var baseResponseDTO = new BaseResponseDTO<PostResponseDTO>();
 
+        // Validasi input
         if (bindingResult.hasFieldErrors()) {
             StringBuilder errorMessages = new StringBuilder();
             List<FieldError> errors = bindingResult.getFieldErrors();
@@ -173,34 +156,56 @@ public class PostRestController {
             baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
             baseResponseDTO.setMessage(errorMessages.toString());
             baseResponseDTO.setTimestamp(new Date());
-            baseResponseDTO.setData(null);
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
         }
 
+        // Validasi apakah ada field yang akan diupdate
+        if ((updatePostRequestDTO.getImageUrl() == null || updatePostRequestDTO.getImageUrl().trim().isEmpty()) &&
+            (updatePostRequestDTO.getCaption() == null || updatePostRequestDTO.getCaption().trim().isEmpty())) {
+            
+            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponseDTO.setMessage("Setidaknya imageUrl atau caption harus diisi untuk update");
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+        }
 
-        PostResponseDTO post = postRestService.updatePost(updatePostRequestDTO);
+        try {
+            PostResponseDTO updatedPost = postRestService.updatePost(updatePostRequestDTO);
 
-        if (post == null) {
+            if (updatedPost == null) {
+                baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+                baseResponseDTO.setMessage("Post tidak ditemukan atau gagal diupdate");
+                baseResponseDTO.setTimestamp(new Date());
+                return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+            }
+
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setData(updatedPost);
+            baseResponseDTO.setMessage("Post updated successfully");
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+
+        } catch (SecurityException ex) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-            baseResponseDTO.setMessage("Post Gagal Diupdate");
+            baseResponseDTO.setMessage("Failed to update post: " + ex.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception ex) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + ex.getMessage());
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        baseResponseDTO.setStatus(HttpStatus.OK.value());
-        baseResponseDTO.setData(post);
-        baseResponseDTO.setMessage("Data Post Berhasil Diupdate");
-        baseResponseDTO.setTimestamp(new Date());
-        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
     }
 
     @DeleteMapping(DELETE_POST)
-    public ResponseEntity<BaseResponseDTO<PostResponseDTO>> deletePost(
+    public ResponseEntity<BaseResponseDTO<String>> deletePost(
             @Valid @RequestBody DeletePostRequestDTO deletePostRequestDTO,
-            BindingResult bindingResult
-    ) {
-        var baseResponseDTO = new BaseResponseDTO<PostResponseDTO>();
+            BindingResult bindingResult) {
 
+        var baseResponseDTO = new BaseResponseDTO<String>();
+
+        // Validasi input
         if (bindingResult.hasFieldErrors()) {
             StringBuilder errorMessages = new StringBuilder();
             List<FieldError> errors = bindingResult.getFieldErrors();
@@ -215,59 +220,92 @@ public class PostRestController {
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
         }
 
+        try {
+            postRestService.deletePost(deletePostRequestDTO);
 
-        PostResponseDTO post = postRestService.deletePost(deletePostRequestDTO);
-
-        if (post == null) {
-            baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
-            baseResponseDTO.setMessage("Post tidak ditemukan");
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setMessage("Post with id " + deletePostRequestDTO.getId() + " deleted successfully");
             baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+            baseResponseDTO.setData(null);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+
+        } catch (SecurityException ex) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Failed to delete post: " + ex.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(null);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (RuntimeException ex) {
+            if (ex.getMessage().contains("tidak ditemukan") || ex.getMessage().contains("not found")) {
+                baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+                baseResponseDTO.setMessage("Post with id " + deletePostRequestDTO.getId() + " not found");
+                baseResponseDTO.setTimestamp(new Date());
+                baseResponseDTO.setData(null);
+                return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+            } else {
+                baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                baseResponseDTO.setMessage("Failed to delete post: " + ex.getMessage());
+                baseResponseDTO.setTimestamp(new Date());
+                baseResponseDTO.setData(null);
+                return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception ex) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Unexpected error occurred while deleting post");
+            baseResponseDTO.setTimestamp(new Date());
+            baseResponseDTO.setData(null);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        baseResponseDTO.setStatus(HttpStatus.OK.value());
-        baseResponseDTO.setData(post);
-        baseResponseDTO.setMessage("Post berhasil di delete");
-        baseResponseDTO.setTimestamp(new Date());
-        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
     }
 
     @PostMapping(LIKE_POST)
-    public ResponseEntity<BaseResponseDTO<PostResponseDTO>> likePost(
-            @Valid @RequestBody LikePostRequestDTO likePostRequestDTO,
-            BindingResult bindingResult
-    ) {
-        var baseResponseDTO = new BaseResponseDTO<PostResponseDTO>();
+    public ResponseEntity<BaseResponseDTO<String>> likePost(@PathVariable UUID id) {
 
-        if (bindingResult.hasFieldErrors()) {
-            StringBuilder errorMessages = new StringBuilder();
-            List<FieldError> errors = bindingResult.getFieldErrors();
-            for (FieldError error : errors) {
-                errorMessages.append(error.getDefaultMessage()).append("; ");
-            }
+        var baseResponseDTO = new BaseResponseDTO<String>();
 
-            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
-            baseResponseDTO.setMessage(errorMessages.toString());
-            baseResponseDTO.setTimestamp(new Date());
+        try {
+            LikePostRequestDTO likePostRequestDTO = new LikePostRequestDTO();
+            likePostRequestDTO.setId(id);
+            
+            postRestService.likePost(likePostRequestDTO);
+
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
             baseResponseDTO.setData(null);
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
-        }
-
-
-        PostResponseDTO post = postRestService.likePost(likePostRequestDTO);
-
-        if (post == null) {
-            baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
-            baseResponseDTO.setMessage("Post atau UserProfile berdasarkan id Tidak Ditemukan");
+            baseResponseDTO.setMessage("Post like successfully");
             baseResponseDTO.setTimestamp(new Date());
-            return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+
+        } catch (RuntimeException ex) {
+            if (ex.getMessage().contains("tidak ditemukan")) {
+                baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+                baseResponseDTO.setMessage(ex.getMessage());
+                baseResponseDTO.setTimestamp(new Date());
+                return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+            } else {
+                baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+                baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + ex.getMessage());
+                baseResponseDTO.setTimestamp(new Date());
+                return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (Exception ex) {
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Terjadi kesalahan pada server: " + ex.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        baseResponseDTO.setStatus(HttpStatus.OK.value());
-        baseResponseDTO.setData(post);
-        baseResponseDTO.setMessage("Post berhasil di like/unlike");
-        baseResponseDTO.setTimestamp(new Date());
-        return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
     }
 
+    @GetMapping("/random")
+    public ResponseEntity<?> random() {
+        Random random = new Random();
+        boolean theBoolean = random.nextBoolean();
+
+        if (theBoolean) {
+            return ResponseEntity.ok().body("200 OK: Random success response");
+        } else {
+            return ResponseEntity.badRequest().body("400 Bad Request: Random failure response");
+        }
+    }
 
 
 }

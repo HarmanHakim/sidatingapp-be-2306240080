@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.UUID;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -17,6 +18,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import com.github.javafaker.Faker;
 import com.github.javafaker.Name;
 
+import io.harman.sidating_app_be.dto.user.CreateUserDto;
 import io.harman.sidating_app_be.model.Post;
 import io.harman.sidating_app_be.model.UserProfile;
 import io.harman.sidating_app_be.repository.PostRepository;

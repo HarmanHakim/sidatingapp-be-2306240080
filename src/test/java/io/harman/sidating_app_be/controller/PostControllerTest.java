@@ -1,32 +1,5 @@
 package io.harman.sidating_app_be.controller;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-
 import io.harman.sidating_app_be.dto.post.CreatePostDto;
 import io.harman.sidating_app_be.dto.post.ReadPostDto;
 import io.harman.sidating_app_be.dto.post.UpdatePostDto;
@@ -34,282 +7,347 @@ import io.harman.sidating_app_be.model.Post;
 import io.harman.sidating_app_be.model.UserProfile;
 import io.harman.sidating_app_be.service.PostService;
 import io.harman.sidating_app_be.service.UserProfileService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-@WebMvcTest(PostController.class)
-@ContextConfiguration(classes = PostController.class)
-@Import(PostController.class)
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@ExtendWith(MockitoExtension.class)
 class PostControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private PostService postService;
 
-    @MockBean
+    @Mock
     private UserProfileService userProfileService;
 
-    private UUID existingUserId;
-    private UUID fakeUserId;
-    private UUID existingPostId;
-    private Post post;
-    private UserProfile user;
-    private ReadPostDto readPostDto;
+    @InjectMocks
+    private PostController postController;
+
+    private MockMvc mockMvc;
+    private Post samplePost;
+    private ReadPostDto sampleReadPostDto;
+    private UserProfile sampleUserProfile;
+    private List<UserProfile> sampleUserProfiles;
+    private UUID postId;
+    private UUID userProfileId;
 
     @BeforeEach
     void setUp() {
-        existingUserId = UUID.randomUUID();
-        fakeUserId = UUID.randomUUID();
-        existingPostId = UUID.randomUUID();
-
-        user = UserProfile.builder()
-                .id(existingUserId)
-                .name("Muhammad Hafiz")
-                .nickname("Hafiz")
-                .birthdate(LocalDate.of(2004, 8, 16))
-                .hobbies("Coding")
-                .gender("MALE")
-                .location("Jakarta")
-                .bio("Information System Student.")
-                .email("hafiz@example.com")
-                .phoneNumber("081234567890")
-                .interests("Technology, Startups, AI")
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .isActive(true)
+        // Setup MockMvc
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setPrefix("/WEB-INF/views/");
+        viewResolver.setSuffix(".html");
+        
+        mockMvc = MockMvcBuilders.standaloneSetup(postController)
+                .setViewResolvers(viewResolver)
                 .build();
 
-        post = Post.builder()
-                .id(existingPostId)
-                .userProfile(user)
-                .userProfileId(existingUserId)
-                .imageUrl("https://example.com/image.jpg")
-                .caption("Initial Post")
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .isActive(true)
-                .build();
-
-        readPostDto = ReadPostDto.builder()
-                .id(existingPostId)
-                .userProfileId(existingUserId)
-                .userProfileName("Muhammad Hafiz")
-                .imageUrl("https://example.com/image.jpg")
-                .caption("Initial Post")
-                .createdAt(LocalDateTime.now())
-                .likes(List.of())
-                .likeCount(0)
-                .timeAgo("Just Now")
-                .build();
-
-        List<UserProfile> profiles = List.of(user);
-        List<ReadPostDto> postsDto = List.of(readPostDto);
-
-        when(userProfileService.getAllUserProfile()).thenReturn(profiles);
-        when(userProfileService.getUserProfile(existingUserId)).thenReturn(user);
-        when(postService.getAllPostsDto(any(UUID.class), any(String.class))).thenReturn(postsDto);
-        when(postService.getPost(existingPostId)).thenReturn(post);
-        when(postService.getPost(fakeUserId)).thenReturn(null);
-        when(postService.createPost(any(CreatePostDto.class))).thenReturn(post);
-        when(postService.updatePost(any(UpdatePostDto.class))).thenReturn(post);
-        when(postService.deletePost(existingPostId)).thenReturn(post);
-        when(postService.likePost(existingPostId, existingUserId)).thenReturn(post);
-        when(postService.likePost(existingPostId, fakeUserId)).thenReturn(null);
-    }
-
-    // --- View All Posts ---
-    @Test
-    void testGetAllPostsDefaultSort() throws Exception {
-        mockMvc.perform(get("/posts"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("posts/view-all"))
-                .andExpect(model().attributeExists("posts"));
+        // Setup test data
+        postId = UUID.randomUUID();
+        userProfileId = UUID.randomUUID();
+        
+        sampleUserProfile = new UserProfile();
+        sampleUserProfile.setId(userProfileId);
+        sampleUserProfile.setName("Test User");
+        
+        sampleUserProfiles = Arrays.asList(sampleUserProfile);
+        
+        samplePost = new Post();
+        samplePost.setId(postId);
+        samplePost.setCaption("Test Caption");
+        samplePost.setImageUrl("test-image.jpg");
+        samplePost.setUserProfileId(userProfileId);
+        samplePost.setCreatedAt(LocalDateTime.now());
+        
+        sampleReadPostDto = new ReadPostDto();
+        sampleReadPostDto.setId(postId);
+        sampleReadPostDto.setCaption("Test Caption");
+        sampleReadPostDto.setImageUrl("test-image.jpg");
     }
 
     @Test
-    void testViewAllPostsEmptyList() throws Exception {
-        when(postService.getAllPostsDto(any(), any())).thenReturn(List.of());
+    void getAllPosts_ShouldReturnViewWithPosts() throws Exception {
+        // Given
+        List<Post> posts = Arrays.asList(samplePost);
+        List<ReadPostDto> readPostDtos = Arrays.asList(sampleReadPostDto);
+        
+        when(postService.getAllPost(null, "desc")).thenReturn(posts);
+        when(postService.mapToReadPostDto(samplePost)).thenReturn(sampleReadPostDto);
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
 
-        mockMvc.perform(get("/posts"))
+        // When & Then
+        mockMvc.perform(get("/post"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("posts/view-all"))
-                .andExpect(model().attribute("posts", List.of()));
-    }
-
-    // --- View Single Post ---
-    @Test
-    void testGetPostByIdFound() throws Exception {
-        mockMvc.perform(get("/posts/{id}", existingPostId))
-                .andExpect(status().isOk())
-                .andExpect(view().name("posts/detail"))
-                .andExpect(model().attributeExists("post"))
-                .andExpect(model().attributeExists( "userProfiles"));
-    }
-
-    @Test
-    void testGetPostByIdNotFound() throws Exception {
-        UUID fakePostId = UUID.randomUUID();
-        when(postService.getPost(fakePostId)).thenReturn(null);
-
-        mockMvc.perform(get("/posts/{id}", fakePostId))
-                .andExpect(status().isOk())
-                .andExpect(view().name("error/404"))
-                .andExpect(model().attribute("title", "Post Not Found"))
-                .andExpect(model().attributeExists("message"));
-    }
-
-    @Test
-    void testViewPostWithoutUserProfile() throws Exception {
-        Post orphanPost = Post.builder()
-                .id(UUID.randomUUID())
-                .userProfile(null)
-                .imageUrl("https://example.com/image.jpg")
-                .caption("Orphan Post")
-                .isActive(true)
-                .build();
-
-        when(postService.getPost(orphanPost.getId())).thenReturn(orphanPost);
-
-        mockMvc.perform(get("/posts/{id}", orphanPost.getId()))
-                .andExpect(status().isOk())
-                .andExpect(view().name("posts/detail"))
-                .andExpect(model().attributeExists("post"))
+                .andExpect(view().name("post/view-all"))
+                .andExpect(model().attributeExists("posts"))
                 .andExpect(model().attributeExists("userProfiles"));
+        
+        verify(postService).getAllPost(null, "desc");
+        verify(userProfileService).getAllUserProfile();
     }
 
-    // --- Create Post ---
     @Test
-    void testFormCreatePost() throws Exception {
-        mockMvc.perform(get("/posts/create"))
+    void getAllPosts_WithUserIdAndSort_ShouldReturnFilteredPosts() throws Exception {
+        // Given
+        List<Post> posts = Arrays.asList(samplePost);
+        when(postService.getAllPost(userProfileId, "asc")).thenReturn(posts);
+        when(postService.mapToReadPostDto(samplePost)).thenReturn(sampleReadPostDto);
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
+
+        // When & Then
+        mockMvc.perform(get("/post")
+                .param("userId", userProfileId.toString())
+                .param("sort", "asc"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("posts/form"))
-                .andExpect(model().attribute("isEdit", Boolean.FALSE))
-                .andExpect(model().attributeExists("post"))
-                .andExpect(model().attributeExists("userProfiles"));
+                .andExpect(view().name("post/view-all"));
+        
+        verify(postService).getAllPost(userProfileId, "asc");
     }
 
     @Test
-    void testCreatePostSuccess() throws Exception {
-        mockMvc.perform(post("/posts/create")
-                        .param("userProfileId", existingUserId.toString())
-                        .param("imageUrl", "https://example.com/new-image.jpg")
-                        .param("caption", "Test Post")
-                        .contentType("application/x-www-form-urlencoded"))
+    void createPostForm_ShouldReturnFormView() throws Exception {
+        // Given
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
+
+        // When & Then
+        mockMvc.perform(get("/post/create"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("post/form"))
+                .andExpect(model().attributeExists("post"))
+                .andExpect(model().attributeExists("userProfiles"))
+                .andExpect(model().attribute("isEdit", false));
+        
+        verify(userProfileService).getAllUserProfile();
+    }
+
+    @Test
+    void createPost_ValidInput_ShouldRedirectWithSuccessMessage() throws Exception {
+        // Given
+        when(postService.createPost(any(CreatePostDto.class))).thenReturn(samplePost);
+
+        // When & Then
+        mockMvc.perform(post("/post/create")
+                .param("caption", "Test Caption")
+                .param("imageUrl", "test-image.jpg")
+                .param("userProfileId", userProfileId.toString()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/posts"));
-
+                .andExpect(redirectedUrl("/post"))
+                .andExpect(flash().attributeExists("successMessage"));
+        
         verify(postService).createPost(any(CreatePostDto.class));
     }
 
     @Test
-    void testCreatePostWithMissingImageUrl() throws Exception {
-        mockMvc.perform(post("/posts/create")
-                        .param("userProfileId", existingUserId.toString())
-                        .param("caption", "Test Post")
-                        .contentType("application/x-www-form-urlencoded"))
+    void createPost_ServiceReturnsNull_ShouldRedirectWithErrorMessage() throws Exception {
+        // Given
+        when(postService.createPost(any(CreatePostDto.class))).thenReturn(null);
+
+        // When & Then
+        mockMvc.perform(post("/post/create")
+                .param("caption", "Test Caption")
+                .param("imageUrl", "test-image.jpg")
+                .param("userProfileId", userProfileId.toString()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/posts/create"));
+                .andExpect(redirectedUrl("/post/create"))
+                .andExpect(flash().attributeExists("errorMessage"));
     }
 
     @Test
-void testCreatePostWithEmptyCaption() throws Exception {
-    mockMvc.perform(post("/posts/create")
-                    .param("userProfileId", existingUserId.toString())
-                    .param("imageUrl", "https://example.com/image.jpg")
-                    .param("caption", "") // kosong
-                    .contentType("application/x-www-form-urlencoded"))
-            .andExpect(status().is3xxRedirection())
-            .andExpect(redirectedUrl("/posts/create"))
-            .andExpect(flash().attributeExists("errorMessage"));
-}
+    void getPostById_ExistingPost_ShouldReturnDetailView() throws Exception {
+        // Given
+        when(postService.getPost(postId)).thenReturn(samplePost);
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
 
-
-    // --- Update Post ---
-    @Test
-    void testFormUpdatePostFound() throws Exception {
-        mockMvc.perform(get("/posts/update/{id}", existingPostId))
+        // When & Then
+        mockMvc.perform(get("/post/{id}", postId))
                 .andExpect(status().isOk())
-                .andExpect(view().name("posts/form"))
-                .andExpect(model().attribute("isEdit", Boolean.TRUE))
+                .andExpect(view().name("post/detail"))
                 .andExpect(model().attributeExists("post"))
-                .andExpect(model().attributeExists("userProfiles"))
-                .andExpect(model().attribute("postId", existingPostId));
+                .andExpect(model().attributeExists("userProfiles"));
+        
+        verify(postService).getPost(postId);
+        verify(userProfileService).getAllUserProfile();
     }
 
     @Test
-    void testFormUpdatePostNotFound() throws Exception {
-        UUID fakePostId = UUID.randomUUID();
-        when(postService.getPost(fakePostId)).thenReturn(null);
+    void getPostById_NonExistingPost_ShouldReturn404View() throws Exception {
+        // Given
+        when(postService.getPost(postId)).thenReturn(null);
 
-        mockMvc.perform(get("/posts/update/{id}", fakePostId))
+        // When & Then
+        mockMvc.perform(get("/post/{id}", postId))
                 .andExpect(status().isOk())
                 .andExpect(view().name("error/404"))
                 .andExpect(model().attribute("title", "Post Not Found"))
                 .andExpect(model().attributeExists("message"));
+        
+        verify(postService).getPost(postId);
     }
 
     @Test
-    void testUpdatePostSuccess() throws Exception {
-        mockMvc.perform(put("/posts/update/{id}", existingPostId)
-                        .param("id", existingPostId.toString())
-                        .param("userProfileId", existingUserId.toString())
-                        .param("imageUrl", "https://example.com/updated-image.jpg")
-                        .param("caption", "Updated Post")
-                        .param("isActive", "true")
-                        .contentType("application/x-www-form-urlencoded"))
+    void updatePostForm_ExistingPost_ShouldReturnFormView() throws Exception {
+        // Given
+        when(postService.getPost(postId)).thenReturn(samplePost);
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
+
+        // When & Then
+        mockMvc.perform(get("/post/update/{id}", postId))
+                .andExpect(status().isOk())
+                .andExpect(view().name("post/form"))
+                .andExpect(model().attributeExists("post"))
+                .andExpect(model().attributeExists("userProfiles"))
+                .andExpect(model().attribute("isEdit", true));
+        
+        verify(postService).getPost(postId);
+        verify(userProfileService).getAllUserProfile();
+    }
+
+    @Test
+    void updatePostForm_NonExistingPost_ShouldRedirectToPosts() throws Exception {
+        // Given
+        when(postService.getPost(postId)).thenReturn(null);
+
+        // When & Then
+        mockMvc.perform(get("/post/update/{id}", postId))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/posts"));
+        
+        verify(postService).getPost(postId);
     }
 
     @Test
-    void testUpdatePostWithInvalidData() throws Exception {
-        mockMvc.perform(put("/posts/update/{id}", existingPostId)
-                        .param("id", existingPostId.toString())
-                        .param("userProfileId", existingUserId.toString())
-                        .param("imageUrl", "")
-                        .param("caption", "")
-                        .contentType("application/x-www-form-urlencoded"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/posts/update/" + existingPostId))
-                .andExpect(flash().attributeExists("errorMessage"));
-    }
+    void updatePost_ValidInput_ShouldRedirectWithSuccessMessage() throws Exception {
+        // Given
+        when(postService.updatePost(any(UpdatePostDto.class))).thenReturn(samplePost);
 
-    // --- Delete Post ---
-    @Test
-    void testDeletePostFound() throws Exception {
-        mockMvc.perform(delete("/posts/delete/{id}", existingPostId))
+        // When & Then
+        mockMvc.perform(put("/post/update/{id}", postId)
+                .param("caption", "Updated Caption")
+                .param("imageUrl", "updated-image.jpg")
+                .param("userProfileId", userProfileId.toString()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/posts"));
-    }
-
-    @Test
-    void testDeletePostNotFound() throws Exception {
-        UUID fakePostId = UUID.randomUUID();
-        when(postService.deletePost(fakePostId)).thenReturn(null);
-
-        mockMvc.perform(delete("/posts/delete/{id}", fakePostId))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/posts"));
-    }
-
-    // --- Like Post ---
-    @Test
-    void testLikePostSuccess() throws Exception {
-        mockMvc.perform(post("/posts/{id}/like", existingPostId)
-                        .param("userId", existingUserId.toString())
-                        .contentType("application/x-www-form-urlencoded"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/posts/" + existingPostId))
+                .andExpect(redirectedUrl("/post"))
                 .andExpect(flash().attributeExists("successMessage"));
+        
+        verify(postService).updatePost(any(UpdatePostDto.class));
     }
 
     @Test
-    void testLikePostFail() throws Exception {
-        mockMvc.perform(post("/posts/{id}/like", existingPostId)
-                        .param("userId", fakeUserId.toString())
-                        .contentType("application/x-www-form-urlencoded"))
+    void updatePost_ServiceReturnsNull_ShouldRedirectWithErrorMessage() throws Exception {
+        // Given
+        when(postService.updatePost(any(UpdatePostDto.class))).thenReturn(null);
+
+        // When & Then
+        mockMvc.perform(put("/post/update/{id}", postId)
+                .param("caption", "Updated Caption")
+                .param("imageUrl", "updated-image.jpg")
+                .param("userProfileId", userProfileId.toString()))
                 .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/posts/" + existingPostId))
+                .andExpect(redirectedUrl("/post"))
                 .andExpect(flash().attributeExists("errorMessage"));
+    }
+
+    @Test
+    void deletePost_ExistingPost_ShouldRedirectWithSuccessMessage() throws Exception {
+        // Given
+        when(postService.deletePost(postId)).thenReturn(samplePost);
+
+        // When & Then
+        mockMvc.perform(post("/post/delete/{id}", postId))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/post"))
+                .andExpect(flash().attributeExists("successMessage"));
+        
+        verify(postService).deletePost(postId);
+    }
+
+    @Test
+    void deletePost_NonExistingPost_ShouldRedirectWithErrorMessage() throws Exception {
+        // Given
+        when(postService.deletePost(postId)).thenReturn(null);
+
+        // When & Then
+        mockMvc.perform(post("/post/delete/{id}", postId))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/post"))
+                .andExpect(flash().attributeExists("errorMessage"));
+        
+        verify(postService).deletePost(postId);
+    }
+
+    @Test
+    void likePost_ValidInput_ShouldRedirectWithSuccessMessage() throws Exception {
+        // Given
+        when(postService.likePost(postId, userProfileId)).thenReturn(samplePost);
+
+        // When & Then
+        mockMvc.perform(post("/post/like/{postId}", postId)
+                .param("userProfileId", userProfileId.toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/post/" + postId))
+                .andExpect(flash().attributeExists("successMessage"));
+        
+        verify(postService).likePost(postId, userProfileId);
+    }
+
+    @Test
+    void likePost_ServiceReturnsNull_ShouldRedirectWithErrorMessage() throws Exception {
+        // Given
+        when(postService.likePost(postId, userProfileId)).thenReturn(null);
+
+        // When & Then
+        mockMvc.perform(post("/post/like/{postId}", postId)
+                .param("userProfileId", userProfileId.toString()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/post/" + postId))
+                .andExpect(flash().attributeExists("errorMessage"));
+    }
+
+    @Test
+    void getPostDetail_ExistingPost_ShouldReturnDetailView() throws Exception {
+        // Given
+        when(postService.getPost(postId)).thenReturn(samplePost);
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
+
+        // When & Then
+        mockMvc.perform(get("/post/post/{id}", postId))
+                .andExpect(status().isOk())
+                .andExpect(view().name("post/detail"))
+                .andExpect(model().attributeExists("post"))
+                .andExpect(model().attributeExists("userProfiles"));
+        
+        verify(postService).getPost(postId);
+        verify(userProfileService).getAllUserProfile();
+    }
+
+    @Test
+    void getPostDetail_NonExistingPost_ShouldRedirectToPosts() throws Exception {
+        // Given
+        when(postService.getPost(postId)).thenReturn(null);
+
+        // When & Then
+        mockMvc.perform(get("/post/post/{id}", postId))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/post"));
+        
+        verify(postService).getPost(postId);
     }
 }

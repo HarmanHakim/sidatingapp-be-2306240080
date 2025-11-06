@@ -1,30 +1,26 @@
 package io.harman.sidating_app_be.dto.post;
 
-import java.util.UUID;
-
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatePostDto {
-
-    @NotNull(message = "UserProfileId is required")
+    @NotNull(message = "User profile ID is required")
     private UUID userProfileId;
-
-    @NotEmpty(message = "ImageUrl is required")
+    
+    @NotBlank(message = "Image URL is required")
     private String imageUrl;
 
-    @NotEmpty(message = "Caption is required")
+    @Size(max = 500, message = "Caption must be less than 500 characters")
     private String caption;
-
-
 }
-
-

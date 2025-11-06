@@ -1,8 +1,5 @@
 package io.harman.sidating_app_be.restcontroller;
 
-import java.util.Date;
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,21 +8,21 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import io.harman.sidating_app_be.model.UserProfile;
 import io.harman.sidating_app_be.repository.UserProfileRepository;
-import io.harman.sidating_app_be.restService.UserProfileRestService;
+import io.harman.sidating_app_be.restdto.BaseResponseDTO;
 import io.harman.sidating_app_be.restdto.request.security.LoginJwtRequestDTO;
-import io.harman.sidating_app_be.restdto.request.userProfile.AddUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.response.BaseResponseDTO;
+import io.harman.sidating_app_be.restdto.request.userprofile.AddUserProfileRequestDTO;
 import io.harman.sidating_app_be.restdto.response.security.LoginJwtResponseDTO;
-import io.harman.sidating_app_be.restdto.response.userProfile.UserProfileResponseDTO;
+import io.harman.sidating_app_be.restdto.response.userprofile.UserProfileResponseDTO;
+import io.harman.sidating_app_be.restservice.UserProfileRestService;
 import io.harman.sidating_app_be.security.jwt.JwtUtils;
 import jakarta.validation.Valid;
+
+import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/auth")

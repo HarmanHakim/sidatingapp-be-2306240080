@@ -1,4 +1,4 @@
-package io.harman.sidating_app_be.restService;
+package io.harman.sidating_app_be.restservice;
 
 import java.util.List;
 

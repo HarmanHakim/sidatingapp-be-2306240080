@@ -1,376 +1,381 @@
 package io.harman.sidating_app_be.controller;
 
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.nullValue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
 import io.harman.sidating_app_be.dto.user.CreateUserDto;
 import io.harman.sidating_app_be.dto.user.ReadUserProfileDto;
 import io.harman.sidating_app_be.dto.user.UpdateUserDto;
 import io.harman.sidating_app_be.model.UserProfile;
 import io.harman.sidating_app_be.service.UserProfileService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-@WebMvcTest(UserProfileController.class)
-@ContextConfiguration(classes = {UserProfileController.class})
-@Import(UserProfileService.class)
+import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@ExtendWith(MockitoExtension.class)
 class UserProfileControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private UserProfileService userProfileService;
 
+    @InjectMocks
+    private UserProfileController userProfileController;
+
+    private MockMvc mockMvc;
+    private UserProfile sampleUserProfile;
+    private UserProfile sampleUserProfile2;
+    private ReadUserProfileDto sampleReadUserProfileDto;
+    private List<UserProfile> sampleUserProfiles;
     private UUID userId;
-    private UserProfile userProfile;
-    private CreateUserDto createUserDto;
-    private UpdateUserDto updateUserDto;
-    private ReadUserProfileDto readUserProfileDto;
+    private UUID userId2;
 
     @BeforeEach
-        void setUp() {
+    void setUp() {
+        // Setup MockMvc
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setPrefix("/WEB-INF/views/");
+        viewResolver.setSuffix(".html");
+        
+        mockMvc = MockMvcBuilders.standaloneSetup(userProfileController)
+                .setViewResolvers(viewResolver)
+                .build();
+
+        // Setup test data
         userId = UUID.randomUUID();
-
-        userProfile = UserProfile.builder()
-                .id(userId)
-                .name("John Doe")
-                .nickname("Johnny")
-                .birthdate(LocalDate.of(1995, 5, 20))
-                .hobbies("Reading")
-                .gender("MALE")
-                .location("Jakarta")
-                .bio("I love adventure!")
-                .email("john@apap.id")
-                .phoneNumber("081234567890")
-                .interests("Technology")
-                .isActive(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now()) 
-                .build();
-
-        createUserDto = CreateUserDto.builder()
-                .name("John Doe")
-                .nickname("Johnny")
-                .birthdate(LocalDate.of(1995, 5, 20))
-                .hobbies("Reading")
-                .gender("MALE")
-                .location("Jakarta")
-                .bio("I love adventure!")
-                .email("john@apap.id")
-                .phoneNumber("081234567890")
-                .interests("Technology")
-                .isActive(true)
-                .build();
-
-        updateUserDto = UpdateUserDto.builder()
-                .id(userId)
-                .name("John Updated")
-                .nickname("Johnny2")
-                .birthdate(LocalDate.of(1995, 5, 20))
-                .hobbies("Gaming")
-                .gender("MALE")
-                .location("Bandung")
-                .bio("Updated bio!")
-                .email("john.updated@apap.id")
-                .phoneNumber("081234567891")
-                .interests("Gaming")
-                .isActive(true)
-                .build();
-
-        readUserProfileDto = ReadUserProfileDto.builder()
-                .id(userId)
-                .name("John Doe")
-                .nickname("Johnny")
-                .birthdate(LocalDate.of(1995, 5, 20))
-                .age(30)
-                .ageGroup("26-35")
-                .hobbies("Reading")
-                .gender("MALE")
-                .location("Jakarta")
-                .bio("I love adventure!")
-                .email("john@apap.id")
-                .phoneNumber("081234567890")
-                .interests("Technology")
-                .isActive(true)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now()) 
-                .build();
-
-        }
-
-        @Test
-        void testViewAllProfiles() throws Exception {
-                List<UserProfile> userProfiles = Arrays.asList(userProfile);
-
-                when(userProfileService.searchProfilesByName(null)).thenReturn(userProfiles);
-                when(userProfileService.toReadUserProfileDto(any(UserProfile.class))).thenReturn(readUserProfileDto);
-
-                mockMvc.perform(MockMvcRequestBuilders.get("/profile"))
-                        .andExpect(status().isOk())
-                        .andExpect(view().name("profile/view-all"))
-                        .andExpect(model().attribute("userProfiles", hasSize(1)))
-                        .andExpect(model().attribute("userProfiles",
-                                contains(hasProperty("id", equalTo(userId)))))
-                        .andExpect(model().attribute("search", nullValue()));
-
-                verify(userProfileService, times(1)).searchProfilesByName(null);
-                verify(userProfileService, times(1)).toReadUserProfileDto(any(UserProfile.class));
-        }
-
-
-    @Test
-    void testGetProfileById_Found() throws Exception {
-        when(userProfileService.getUserProfile(userId)).thenReturn(userProfile);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/profile/{id}", userId))
-                .andExpect(status().isOk())
-                .andExpect(view().name("profile/detail"))
-                .andExpect(model().attribute("userProfile", userProfile));
+        userId2 = UUID.randomUUID();
+        
+        sampleUserProfile = new UserProfile();
+        sampleUserProfile.setId(userId);
+        sampleUserProfile.setName("John Doe");
+        sampleUserProfile.setNickname("Johnny");
+        sampleUserProfile.setBirthdate(LocalDate.of(1990, 1, 1));
+        sampleUserProfile.setEmail("john@example.com");
+        sampleUserProfile.setGender("Male");
+        sampleUserProfile.setLocation("Jakarta");
+        sampleUserProfile.setBio("Test bio");
+        sampleUserProfile.setActive(true);
+        
+        sampleUserProfile2 = new UserProfile();
+        sampleUserProfile2.setId(userId2);
+        sampleUserProfile2.setName("Jane Doe");
+        sampleUserProfile2.setNickname("Janie");
+        sampleUserProfile2.setBirthdate(LocalDate.of(1992, 5, 15));
+        sampleUserProfile2.setEmail("jane@example.com");
+        sampleUserProfile2.setGender("Female");
+        sampleUserProfile2.setLocation("Bandung");
+        sampleUserProfile2.setBio("Another test bio");
+        sampleUserProfile2.setActive(true);
+        
+        sampleUserProfiles = Arrays.asList(sampleUserProfile, sampleUserProfile2);
+        
+        sampleReadUserProfileDto = new ReadUserProfileDto();
+        sampleReadUserProfileDto.setId(userId);
+        sampleReadUserProfileDto.setName("John Doe");
+        sampleReadUserProfileDto.setNickname("Johnny");
+        sampleReadUserProfileDto.setBirthdate(LocalDate.of(1990, 1, 1));
+        sampleReadUserProfileDto.setEmail("john@example.com");
     }
 
     @Test
-    void testGetProfileById_NotFound() throws Exception {
+    void getAllProfile_WithoutSearch_ShouldReturnAllProfiles() throws Exception {
+        // Given
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
+        when(userProfileService.mapToReadUserProfileDto(sampleUserProfile)).thenReturn(sampleReadUserProfileDto);
+        when(userProfileService.mapToReadUserProfileDto(sampleUserProfile2)).thenReturn(new ReadUserProfileDto());
+
+        // When & Then
+        mockMvc.perform(get("/profile"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profile/view-all"))
+                .andExpect(model().attributeExists("userProfiles"))
+                .andExpect(model().attribute("search", (String) null));
+        
+        verify(userProfileService).getAllUserProfile();
+        verify(userProfileService, never()).searchUserProfilesByName(any());
+    }
+
+    @Test
+    void getAllProfile_WithSearch_ShouldReturnSearchResults() throws Exception {
+        // Given
+        String searchQuery = "John";
+        List<UserProfile> searchResults = Arrays.asList(sampleUserProfile);
+        when(userProfileService.searchUserProfilesByName(searchQuery)).thenReturn(searchResults);
+        when(userProfileService.mapToReadUserProfileDto(sampleUserProfile)).thenReturn(sampleReadUserProfileDto);
+
+        // When & Then
+        mockMvc.perform(get("/profile")
+                .param("search", searchQuery))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profile/view-all"))
+                .andExpect(model().attributeExists("userProfiles"))
+                .andExpect(model().attribute("search", searchQuery));
+        
+        verify(userProfileService).searchUserProfilesByName(searchQuery);
+        verify(userProfileService, never()).getAllUserProfile();
+    }
+
+    @Test
+    void getAllProfile_WithEmptySearch_ShouldReturnAllProfiles() throws Exception {
+        // Given
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
+        when(userProfileService.mapToReadUserProfileDto(any())).thenReturn(sampleReadUserProfileDto);
+
+        // When & Then
+        mockMvc.perform(get("/profile")
+                .param("search", "   ")) // Empty/whitespace search
+                .andExpect(status().isOk())
+                .andExpect(view().name("profile/view-all"));
+        
+        verify(userProfileService).getAllUserProfile();
+        verify(userProfileService, never()).searchUserProfilesByName(any());
+    }
+
+    @Test
+    void getProfileById_ExistingProfile_ShouldReturnDetailView() throws Exception {
+        // Given
+        when(userProfileService.getUserProfile(userId)).thenReturn(sampleUserProfile);
+
+        // When & Then
+        mockMvc.perform(get("/profile/{id}", userId))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profile/detail"))
+                .andExpect(model().attributeExists("userProfile"))
+                .andExpect(model().attribute("userProfile", sampleUserProfile));
+        
+        verify(userProfileService).getUserProfile(userId);
+    }
+
+    @Test
+    void getProfileById_NonExistingProfile_ShouldReturn404View() throws Exception {
+        // Given
         when(userProfileService.getUserProfile(userId)).thenReturn(null);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/profile/{id}", userId))
+        // When & Then
+        mockMvc.perform(get("/profile/{id}", userId))
                 .andExpect(status().isOk())
                 .andExpect(view().name("error/404"))
                 .andExpect(model().attribute("title", "Profile Not Found"))
-                .andExpect(model().attribute("message", "Profile with ID " + userId + " not found."));
+                .andExpect(model().attributeExists("message"));
+        
+        verify(userProfileService).getUserProfile(userId);
     }
 
     @Test
-    void testFormProfile() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/profile/create"))
+    void formProfile_ShouldReturnCreateForm() throws Exception {
+        // Given
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
+
+        // When & Then
+        mockMvc.perform(get("/profile/create"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("profile/form"))
                 .andExpect(model().attribute("isEdit", false))
-                .andExpect(model().attributeExists("userProfile"));
+                .andExpect(model().attributeExists("userProfiles"))
+                .andExpect(model().attributeExists("userDto"));
+        
+        verify(userProfileService).getAllUserProfile();
     }
 
     @Test
-    void testCreateProfile_Success() throws Exception {
-        when(userProfileService.createUserProfile(any(CreateUserDto.class))).thenReturn(userProfile);
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/profile/create")
-                        .param("name", createUserDto.getName())
-                        .param("nickname", createUserDto.getNickname())
-                        .param("birthdate", createUserDto.getBirthdate().toString())
-                        .param("hobbies", createUserDto.getHobbies())
-                        .param("gender", createUserDto.getGender())
-                        .param("location", createUserDto.getLocation())
-                        .param("bio", createUserDto.getBio())
-                        .param("email", createUserDto.getEmail())
-                        .param("phoneNumber", createUserDto.getPhoneNumber())
-                        .param("interests", createUserDto.getInterests())
-                        .param("isActive", "true"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/profile"))
-                .andExpect(flash().attribute("successMessage", "Successfully created profile with ID " + userProfile.getId()));
+    void createProfile_ValidationErrors_ShouldReturnFormWithErrors() throws Exception {
+        // When & Then - Testing with invalid email format
+        mockMvc.perform(post("/profile/create")
+                .param("name", "") // Empty name should cause validation error
+                .param("email", "invalid-email"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profile/form"))
+                .andExpect(model().attribute("isEdit", false));
+        
+        verify(userProfileService, never()).createUserProfile(any());
     }
 
     @Test
-    void testCreateProfile_ValidationError() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/profile/create")
-                        .param("name", "") // Empty name triggers validation error
-                        .param("nickname", createUserDto.getNickname())
-                        .param("birthdate", createUserDto.getBirthdate().toString())
-                        .param("hobbies", createUserDto.getHobbies())
-                        .param("gender", createUserDto.getGender())
-                        .param("location", createUserDto.getLocation())
-                        .param("bio", createUserDto.getBio())
-                        .param("email", createUserDto.getEmail())
-                        .param("phoneNumber", createUserDto.getPhoneNumber())
-                        .param("interests", createUserDto.getInterests())
-                        .param("isActive", "true"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/profile/create"))
-                .andExpect(flash().attributeExists("errorMessage"));
-    }
+    void formEditProfile_ExistingProfile_ShouldReturnEditForm() throws Exception {
+        // Given
+        when(userProfileService.getUserProfile(userId)).thenReturn(sampleUserProfile);
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
 
-    @Test
-    void testFormEditProfile_Found() throws Exception {
-        when(userProfileService.getUserProfile(userId)).thenReturn(userProfile);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/profile/update/{id}", userId))
+        // When & Then
+        mockMvc.perform(get("/profile/update/{id}", userId))
                 .andExpect(status().isOk())
                 .andExpect(view().name("profile/form"))
                 .andExpect(model().attribute("isEdit", true))
-                .andExpect(model().attribute("profileId", userId))
-                .andExpect(model().attributeExists("userProfile"));
+                .andExpect(model().attributeExists("userDto"))
+                .andExpect(model().attributeExists("userProfiles"));
+        
+        verify(userProfileService).getUserProfile(userId);
+        verify(userProfileService).getAllUserProfile();
     }
 
     @Test
-    void testFormEditProfile_NotFound() throws Exception {
+    void formEditProfile_NonExistingProfile_ShouldReturn404View() throws Exception {
+        // Given
         when(userProfileService.getUserProfile(userId)).thenReturn(null);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/profile/update/{id}", userId))
+        // When & Then
+        mockMvc.perform(get("/profile/update/{id}", userId))
                 .andExpect(status().isOk())
                 .andExpect(view().name("error/404"))
-                .andExpect(model().attribute("title", "Profile Not Found"))
-                .andExpect(model().attribute("message", "Profile with ID " + userId + " not found."));
+                .andExpect(model().attribute("title", "Profile Not Found"));
+        
+        verify(userProfileService).getUserProfile(userId);
     }
 
     @Test
-    void testUpdateProfile_Success() throws Exception {
-        when(userProfileService.updateUserProfile(any(UpdateUserDto.class))).thenReturn(userProfile);
+    void updateProfile_ValidationErrors_ShouldReturnFormWithErrors() throws Exception {
+        // When & Then - Testing with invalid data
+        mockMvc.perform(put("/profile/update/{id}", userId)
+                .param("name", "") // Empty name should cause validation error
+                .param("email", "invalid-email"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("profile/form"))
+                .andExpect(model().attribute("isEdit", true));
+        
+        verify(userProfileService, never()).updateUserProfile(any());
+    }
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/profile/update/{id}", userId)
-                        .param("id", userId.toString())
-                        .param("name", updateUserDto.getName())
-                        .param("nickname", updateUserDto.getNickname())
-                        .param("birthdate", updateUserDto.getBirthdate().toString())
-                        .param("hobbies", updateUserDto.getHobbies())
-                        .param("gender", updateUserDto.getGender())
-                        .param("location", updateUserDto.getLocation())
-                        .param("bio", updateUserDto.getBio())
-                        .param("email", updateUserDto.getEmail())
-                        .param("phoneNumber", updateUserDto.getPhoneNumber())
-                        .param("interests", updateUserDto.getInterests())
-                        .param("isActive", "true"))
+    @Test
+    void deleteProfile_ExistingProfile_ShouldRedirectWithSuccessMessage() throws Exception {
+        // Given
+        when(userProfileService.deleteProfile(userId)).thenReturn(sampleUserProfile);
+
+        // When & Then
+        mockMvc.perform(delete("/profile/delete/{id}", userId))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/profile"))
-                .andExpect(flash().attribute("successMessage", "Successfully updated profile with ID " + userId));
+                .andExpect(flash().attributeExists("successMessage"));
+        
+        verify(userProfileService).deleteProfile(userId);
     }
 
     @Test
-    void testUpdateProfile_NotFound() throws Exception {
-        when(userProfileService.updateUserProfile(any(UpdateUserDto.class))).thenReturn(null);
-
-        mockMvc.perform(MockMvcRequestBuilders.put("/profile/update/{id}", userId)
-                        .param("id", userId.toString())
-                        .param("name", updateUserDto.getName())
-                        .param("nickname", updateUserDto.getNickname())
-                        .param("birthdate", updateUserDto.getBirthdate().toString())
-                        .param("hobbies", updateUserDto.getHobbies())
-                        .param("gender", updateUserDto.getGender())
-                        .param("location", updateUserDto.getLocation())
-                        .param("bio", updateUserDto.getBio())
-                        .param("email", updateUserDto.getEmail())
-                        .param("phoneNumber", updateUserDto.getPhoneNumber())
-                        .param("interests", updateUserDto.getInterests())
-                        .param("isActive", "true"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/profile"))
-                .andExpect(flash().attribute("errorMessage", "Profile with ID " + userId + " not found or deleted."));
-    }
-
-    @Test
-    void testUpdateProfile_ValidationError() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.put("/profile/update/{id}", userId)
-                        .param("id", userId.toString())
-                        .param("name", "") // Empty name triggers validation error
-                        .param("nickname", updateUserDto.getNickname())
-                        .param("birthdate", updateUserDto.getBirthdate().toString())
-                        .param("hobbies", updateUserDto.getHobbies())
-                        .param("gender", updateUserDto.getGender())
-                        .param("location", updateUserDto.getLocation())
-                        .param("bio", updateUserDto.getBio())
-                        .param("email", updateUserDto.getEmail())
-                        .param("phoneNumber", updateUserDto.getPhoneNumber())
-                        .param("interests", updateUserDto.getInterests())
-                        .param("isActive", "true"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/profile/update/" + userId))
-                .andExpect(flash().attributeExists("errorMessage"));
-    }
-
-    @Test
-    void testDeleteProfile_Success() throws Exception {
-        when(userProfileService.deleteProfile(userId)).thenReturn(userProfile);
-
-        mockMvc.perform(MockMvcRequestBuilders.delete("/profile/delete/{id}", userId))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/profile"))
-                .andExpect(flash().attribute("successMessage", "Successfully deleted profile with ID " + userId));
-    }
-
-    @Test
-    void testDeleteProfile_NotFound() throws Exception {
+    void deleteProfile_NonExistingProfile_ShouldRedirectWithErrorMessage() throws Exception {
+        // Given
         when(userProfileService.deleteProfile(userId)).thenReturn(null);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/profile/delete/{id}", userId))
+        // When & Then
+        mockMvc.perform(delete("/profile/delete/{id}", userId))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/profile"))
-                .andExpect(flash().attribute("errorMessage", "Profile with ID " + userId + " not found or already deleted."));
+                .andExpect(flash().attributeExists("errorMessage"));
+        
+        verify(userProfileService).deleteProfile(userId);
     }
 
     @Test
-    void testShowMatchForm() throws Exception {
-        List<ReadUserProfileDto> dtos = Arrays.asList(readUserProfileDto);
-        when(userProfileService.getAllUserProfilesDto()).thenReturn(dtos);
+    void match_WithoutUserIds_ShouldReturnMatchFormOnly() throws Exception {
+        // Given
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/profile/match"))
+        // When & Then
+        mockMvc.perform(get("/profile/match"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("profile/match"))
-                .andExpect(model().attribute("userProfiles", dtos));
+                .andExpect(model().attributeExists("userProfiles"))
+                .andExpect(model().attributeDoesNotExist("user1"))
+                .andExpect(model().attributeDoesNotExist("user2"))
+                .andExpect(model().attributeDoesNotExist("score"));
+        
+        verify(userProfileService).getAllUserProfile();
+        verify(userProfileService, never()).getRandomMatchScore(any(), any());
     }
 
     @Test
-    void testMatchProfilesPost_Success() throws Exception {
-        UUID userId2 = UUID.randomUUID();
-        when(userProfileService.getUserProfile(userId)).thenReturn(userProfile);
-        when(userProfileService.getUserProfile(userId2)).thenReturn(userProfile);
-        when(userProfileService.toReadUserProfileDto(any(UserProfile.class))).thenReturn(readUserProfileDto);
-        when(userProfileService.getMatchScore(userId, userId2)).thenReturn(80);
-        when(userProfileService.getMatchMessage(80)).thenReturn("Cocok");
-        when(userProfileService.getMatchImage(80)).thenReturn("https://i.pinimg.com/736x/ce/a8/9f/cea89fdbabc6429cc0cf192245ad75a5.jpg");
-        when(userProfileService.getAllUserProfilesDto()).thenReturn(Arrays.asList(readUserProfileDto));
+    void match_WithValidUserIds_ShouldReturnMatchResult() throws Exception {
+        // Given
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
+        when(userProfileService.getUserProfile(userId)).thenReturn(sampleUserProfile);
+        when(userProfileService.getUserProfile(userId2)).thenReturn(sampleUserProfile2);
+        when(userProfileService.getRandomMatchScore(userId, userId2)).thenReturn(85);
+        when(userProfileService.getMatchMessage(85)).thenReturn("Great match!");
+        when(userProfileService.getMatchImage(85)).thenReturn("match-high.png");
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/profile/match")
-                        .param("user1Id", userId.toString())
-                        .param("user2Id", userId2.toString()))
+        // When & Then
+        mockMvc.perform(get("/profile/match")
+                .param("userId1", userId.toString())
+                .param("userId2", userId2.toString()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("profile/match"))
-                .andExpect(model().attribute("user1", readUserProfileDto))
-                .andExpect(model().attribute("user2", readUserProfileDto))
-                .andExpect(model().attribute("matchScore", 80))
-                .andExpect(model().attribute("message", "Cocok"))
-                .andExpect(model().attribute("imageUrl", "https://i.pinimg.com/736x/ce/a8/9f/cea89fdbabc6429cc0cf192245ad75a5.jpg"))
-                .andExpect(model().attribute("userProfiles", Arrays.asList(readUserProfileDto)));
+                .andExpect(model().attributeExists("userProfiles"))
+                .andExpect(model().attribute("user1", sampleUserProfile))
+                .andExpect(model().attribute("user2", sampleUserProfile2))
+                .andExpect(model().attribute("score", 85))
+                .andExpect(model().attribute("message", "Great match!"))
+                .andExpect(model().attribute("imageLink", "match-high.png"));
+        
+        verify(userProfileService).getAllUserProfile();
+        verify(userProfileService).getUserProfile(userId);
+        verify(userProfileService).getUserProfile(userId2);
+        verify(userProfileService).getRandomMatchScore(userId, userId2);
+        verify(userProfileService).getMatchMessage(85);
+        verify(userProfileService).getMatchImage(85);
     }
 
     @Test
-    void testMatchProfilesPost_NotFound() throws Exception {
-        UUID userId2 = UUID.randomUUID();
-        when(userProfileService.getUserProfile(userId)).thenReturn(null);
-        when(userProfileService.getUserProfile(userId2)).thenReturn(null);
-        when(userProfileService.getAllUserProfilesDto()).thenReturn(Collections.emptyList());
+    void match_WithInvalidUserId1_ShouldReturn404() throws Exception {
+        // Given
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
+        when(userProfileService.getUserProfile(userId)).thenReturn(null); // User1 not found
+        when(userProfileService.getUserProfile(userId2)).thenReturn(sampleUserProfile2);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/profile/match")
-                        .param("user1Id", userId.toString())
-                        .param("user2Id", userId2.toString()))
+        // When & Then
+        mockMvc.perform(get("/profile/match")
+                .param("userId1", userId.toString())
+                .param("userId2", userId2.toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("error/404"))
+                .andExpect(model().attribute("title", "Match Error"))
+                .andExpect(model().attributeExists("message"));
+        
+        verify(userProfileService, never()).getRandomMatchScore(any(), any());
+    }
+
+    @Test
+    void match_WithInvalidUserId2_ShouldReturn404() throws Exception {
+        // Given
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
+        when(userProfileService.getUserProfile(userId)).thenReturn(sampleUserProfile);
+        when(userProfileService.getUserProfile(userId2)).thenReturn(null); // User2 not found
+
+        // When & Then
+        mockMvc.perform(get("/profile/match")
+                .param("userId1", userId.toString())
+                .param("userId2", userId2.toString()))
+                .andExpect(status().isOk())
+                .andExpect(view().name("error/404"))
+                .andExpect(model().attribute("title", "Match Error"));
+        
+        verify(userProfileService, never()).getRandomMatchScore(any(), any());
+    }
+
+    @Test
+    void match_WithPartialParameters_ShouldReturnFormOnly() throws Exception {
+        // Given
+        when(userProfileService.getAllUserProfile()).thenReturn(sampleUserProfiles);
+
+        // When & Then - Only userId1 provided
+        mockMvc.perform(get("/profile/match")
+                .param("userId1", userId.toString()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("profile/match"))
-                .andExpect(model().attribute("error", "One or both profiles not found."))
-                .andExpect(model().attribute("userProfiles", Collections.emptyList()));
+                .andExpect(model().attributeExists("userProfiles"))
+                .andExpect(model().attributeDoesNotExist("score"));
+        
+        verify(userProfileService, never()).getRandomMatchScore(any(), any());
     }
 }

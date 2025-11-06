@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class DeletePostRequestDTO {
-
-    @NotNull(message = "Post ID is required")
+    
+    @NotNull(message = "Post ID tidak boleh kosong")
     private UUID id;
 }

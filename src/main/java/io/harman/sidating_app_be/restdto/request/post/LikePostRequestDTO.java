@@ -8,12 +8,12 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class LikePostRequestDTO {
-    @NotNull(message = "User Profile ID is required")
-    private UUID userProfileId;
-
-    @NotNull(message = "Post ID is required")
+    
+    @NotNull(message = "Post ID tidak boleh kosong")
     private UUID id;
+    
+    // userProfileId will be set from authenticated user in service layer
 }

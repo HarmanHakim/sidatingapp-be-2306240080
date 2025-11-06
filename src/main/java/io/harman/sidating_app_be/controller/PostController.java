@@ -1,8 +1,8 @@
 package io.harman.sidating_app_be.controller;
 
 import io.harman.sidating_app_be.dto.post.CreatePostDto;
-import io.harman.sidating_app_be.dto.post.UpdatePostDto;
 import io.harman.sidating_app_be.dto.post.ReadPostDto;
+import io.harman.sidating_app_be.dto.post.UpdatePostDto;
 import io.harman.sidating_app_be.model.Post;
 import io.harman.sidating_app_be.service.PostService;
 import io.harman.sidating_app_be.service.UserProfileService;
@@ -13,12 +13,12 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("/posts")
+@RequestMapping("/post")
 public class PostController {
 
     @Autowired
@@ -27,54 +27,23 @@ public class PostController {
     @Autowired
     private UserProfileService userProfileService;
 
-
     @GetMapping
-    public String viewAllPosts(
-            @RequestParam(required = false) String userId,
-            @RequestParam(defaultValue = "desc") String order, 
+    public String getAllPosts(
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(defaultValue = "desc") String sort,
             Model model) {
 
-        UUID userUuid = null;
-        if (userId != null && !"all".equals(userId)) {
-            try {
-                userUuid = UUID.fromString(userId);
-            } catch (IllegalArgumentException e) {
-                model.addAttribute("errorMessage", "Invalid user filter, showing all posts.");
-            }
-        }
+        List<Post> posts = postService.getAllPost(userId, sort);
 
-        String sortOrder = "desc"; 
-        if ("oldest".equals(order)) {
-            sortOrder = "asc";
-        } else if ("newest".equals(order)) {
-            sortOrder = "desc";
-        }
+        // Mapping ke DTO
+        List<ReadPostDto> dtoList = posts.stream()
+                .map(postService::mapToReadPostDto)
+                .toList();
 
-        List<ReadPostDto> posts = postService.getAllPostsDto(userUuid, sortOrder);
-
-        if (posts == null) posts = new ArrayList<>();
-
-        model.addAttribute("posts", posts);
+        model.addAttribute("posts", dtoList);
         model.addAttribute("userProfiles", userProfileService.getAllUserProfile());
 
-        model.addAttribute("selectedUserId", userId != null ? userId : "all");
-        model.addAttribute("selectedOrder", order != null ? order : "newest"); 
-
-        return "posts/view-all";
-    }
-    
-    @GetMapping("/{id}")
-    public String viewPost(@PathVariable UUID id, Model model) {
-        Post post = postService.getPost(id);
-        if (post == null) {
-            model.addAttribute("title", "Post Not Found");
-            model.addAttribute("message", "Post with ID " + id + " not found.");
-            return "error/404";
-        }
-
-        model.addAttribute("post", post);
-        model.addAttribute("userProfiles", userProfileService.getAllUserProfile());
-        return "posts/detail";
+        return "post/view-all";
     }
 
     @GetMapping("/create")
@@ -82,102 +51,138 @@ public class PostController {
         model.addAttribute("post", new CreatePostDto());
         model.addAttribute("userProfiles", userProfileService.getAllUserProfile());
         model.addAttribute("isEdit", false);
-        return "posts/form";
+        return "post/form";
     }
 
     @PostMapping("/create")
-    public String createPost(@ModelAttribute @Valid CreatePostDto dto,
-                             BindingResult bindingResult,
-                             RedirectAttributes redirectAttributes) {
+    public String createPost(
+            @Valid @ModelAttribute("post") CreatePostDto createPostDto,
+            BindingResult bindingResult,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    bindingResult.getAllErrors().get(0).getDefaultMessage());
-            return "redirect:/posts/create";
+            model.addAttribute("isEdit", false);
+            model.addAttribute("userProfiles", userProfileService.getAllUserProfile());
+            return "post/form";
         }
 
-        Post newPost = postService.createPost(dto);
-        if (newPost == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to create new post.");
-        } else {
-            redirectAttributes.addFlashAttribute("successMessage", "Successfully created post.");
+        Post created = postService.createPost(createPostDto);
+        if (created == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "User profile not found or an error occurred.");
+            return "redirect:/post/create";
         }
-        return "redirect:/posts";
+
+        redirectAttributes.addFlashAttribute("successMessage",
+                "Post created successfully with ID " + created.getId());
+        return "redirect:/post";
     }
 
-    @GetMapping("/update/{id}")
-    public String updatePostForm(@PathVariable UUID id, Model model) {
+    @GetMapping("/{id}")
+    public String getPostById(@PathVariable UUID id, Model model) {
         Post post = postService.getPost(id);
         if (post == null) {
             model.addAttribute("title", "Post Not Found");
             model.addAttribute("message", "Post with ID " + id + " not found.");
             return "error/404";
         }
-
-        UpdatePostDto dto = UpdatePostDto.builder()
-                .id(post.getId())
-                .userProfileId(post.getUserProfileId())
-                .imageUrl(post.getImageUrl())
-                .caption(post.getCaption())
-                .isActive(post.isActive())
-                .build();
-
-        model.addAttribute("post", dto);
+        
+        // Tambahkan objek 'post' ke model
+        model.addAttribute("post", post);
+        
+        // Tambahkan list 'userProfiles' ke model agar bisa digunakan di Thymeleaf
         model.addAttribute("userProfiles", userProfileService.getAllUserProfile());
-        model.addAttribute("postId", id);
+        
+        return "post/detail";
+    }
+
+    @GetMapping("/update/{id}")
+    public String updatePostForm(@PathVariable UUID id, Model model) {
+        Post postEntity = postService.getPost(id);
+        if (postEntity == null) {
+            return "redirect:/posts";
+        }
+
+        UpdatePostDto updateDto = new UpdatePostDto();
+        updateDto.setId(postEntity.getId());
+        updateDto.setCaption(postEntity.getCaption());
+        updateDto.setImageUrl(postEntity.getImageUrl());
+        updateDto.setUserProfileId(postEntity.getUserProfileId());
+
+        model.addAttribute("post", updateDto);
+        model.addAttribute("userProfiles", userProfileService.getAllUserProfile());
         model.addAttribute("isEdit", true);
 
-        return "posts/form";
+        return "post/form";
     }
 
     @PutMapping("/update/{id}")
-    public String updatePost(@PathVariable UUID id,
-                             @ModelAttribute @Valid UpdatePostDto dto,
-                             BindingResult bindingResult,
-                             RedirectAttributes redirectAttributes) {
+    public String updatePost(
+            @PathVariable UUID id,
+            @Valid @ModelAttribute UpdatePostDto updatePostDto,
+            BindingResult bindingResult,
+            RedirectAttributes redirectAttributes,
+            Model model) {
+
         if (bindingResult.hasErrors()) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    bindingResult.getAllErrors().get(0).getDefaultMessage());
-            return "redirect:/posts/update/" + id;
+            model.addAttribute("isEdit", true);
+            model.addAttribute("userProfiles", userProfileService.getAllUserProfile());
+            return "post/form";
         }
 
-        dto.setId(id);
-        Post updatedPost = postService.updatePost(dto);
-        if (updatedPost == null) {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Post with ID " + id + " not found or deleted.");
+        updatePostDto.setId(id);
+        Post updated = postService.updatePost(updatePostDto);
+
+        if (updated == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Post with ID " + updatePostDto.getId() + " not found.");
         } else {
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "Successfully updated post with ID " + id);
+            redirectAttributes.addFlashAttribute("successMessage", "Post updated successfully with ID " + updated.getId());
         }
-        redirectAttributes.addFlashAttribute("successMessage",
-                "Successfully update post with ID " + id);
-        return "redirect:/posts";
+
+        return "redirect:/post";
     }
 
-    @DeleteMapping("/delete/{id}")
+    @PostMapping("/delete/{id}")
     public String deletePost(@PathVariable UUID id, RedirectAttributes redirectAttributes) {
-        Post removedPost = postService.deletePost(id);
-        if (removedPost != null) {
-            redirectAttributes.addFlashAttribute("successMessage",
-                    "Successfully delete post with ID " + id);
+        Post deleted = postService.deletePost(id);
+        if (deleted == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Post with ID " + id + " not found.");
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage",
-                    "Post with ID " + id + " not found or already deleted.");
+            redirectAttributes.addFlashAttribute("successMessage", "Post deleted successfully.");
         }
-        return "redirect:/posts";
+        return "redirect:/post";
     }
 
-    @PostMapping("/{id}/like")
-    public String likePost(@PathVariable UUID id,
-                           @RequestParam UUID userId,
-                           RedirectAttributes redirectAttributes) {
-        Post likedPost = postService.likePost(id, userId);
-        if (likedPost == null) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Failed to like/unlike post.");
+    @PostMapping("/like/{postId}")
+    public String likePost(
+        @PathVariable UUID postId,
+        @RequestParam UUID userProfileId,
+        RedirectAttributes redirectAttributes) {
+
+        Post post = postService.likePost(postId, userProfileId);
+        if (post == null) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Post or User not found.");
         } else {
             redirectAttributes.addFlashAttribute("successMessage", "Post liked/unliked successfully.");
         }
-        return "redirect:/posts/" + id;
+        return "redirect:/post/" + postId;
+    }
+
+    @GetMapping("/post/{id}")
+    public String getPostDetail(@PathVariable UUID id, Model model) {
+        Post post = postService.getPost(id);
+
+        if (post == null) {
+            return "redirect:/post"; // kalau ga ketemu
+        }
+
+        // kirim post
+        model.addAttribute("post", post);
+
+        // kirim userProfiles biar dropdown keisi
+        model.addAttribute("userProfiles", userProfileService.getAllUserProfile());
+
+        return "post/detail";
     }
 
 }

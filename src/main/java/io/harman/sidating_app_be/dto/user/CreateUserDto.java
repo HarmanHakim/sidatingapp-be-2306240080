@@ -1,56 +1,51 @@
 package io.harman.sidating_app_be.dto.user;
-import lombok.AllArgsConstructor;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
+import lombok.AllArgsConstructor;
 
-import jakarta.validation.constraints.NotEmpty;
 import java.time.LocalDate;
-
-import jakarta.validation.constraints.Past;
-
-import jakarta.validation.constraints.NotNull;
-import java.util.UUID;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class CreateUserDto {
-
-    @NotEmpty(message = "Name is required")
+    @NotBlank(message = "Name is required")
     private String name;
 
-    @NotEmpty(message = "Nickname is required")
+    @NotBlank(message = "Nickname is required")
     private String nickname;
 
     @NotNull(message = "Birthdate is required")
     @Past(message = "Birthdate must be in the past")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate birthdate;
 
-    @NotEmpty(message = "Hobbies is required")
+    @NotBlank(message = "Hobbies are required")
     private String hobbies;
-
-    @NotEmpty(message = "Gender is required")
+    
+    @NotBlank(message = "Gender is required")
     private String gender;
 
-    @NotEmpty(message = "Location is required")
+    @NotBlank(message = "Location is required")
     private String location;
 
-    @NotEmpty(message = "Bio is required")
+    @Size(max = 255, message = "Bio must be less than 255 characters")
     private String bio;
 
-    @NotEmpty(message = "Email is required")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email must be a valid email address")
     private String email;
 
-    @NotEmpty(message = "Phone number is required")
+    @NotBlank(message = "Phone number is required")
     private String phoneNumber;
 
-    @NotEmpty(message = "Interests is required")
+    @NotBlank(message = "Interests are required")
     private String interests;
-
-    private Boolean isActive = true;
-
 }
