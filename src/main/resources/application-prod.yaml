@@ -1,7 +1,7 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/sidatingapp-prod
-    username: sidatingapp-prod
+    url: jdbc:postgresql://localhost:5432/sidatingapp-2-prod
+    username: sidatingapp-2-prod
     password: ${DB_PASSWORD:your-production-password}
     driver-class-name: org.postgresql.Driver
 
@@ -20,7 +20,7 @@ logging:
     io.harman.sidating_app_be: INFO
     org.springframework.web: WARN
   file:
-    name: logs/sidating-app.log
+    name: logs/sidating-app-2.log
 
 server:
-  port: 8080
+  port: 8081

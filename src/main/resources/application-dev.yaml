@@ -1,7 +1,7 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:35001/sidatingapp-dev
-    username: sidatingapp-dev
+    url: jdbc:postgresql://localhost:35001/sidatingapp-dev-2
+    username: sidatingapp-dev-2
     password: CLI-825.2025X
     driver-class-name: org.postgresql.Driver
 
