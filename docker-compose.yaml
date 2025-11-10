@@ -1,6 +1,6 @@
 services:
 
-  sidating-app-db:
+  sidating-app-db-2:
 
     image: postgres:17.5-alpine
 
@@ -12,19 +12,19 @@ services:
 
     environment:
 
-      - POSTGRES_USER=sidatingapp-dev
+      - POSTGRES_USER=sidatingapp-dev-2
 
       - POSTGRES_PASSWORD=CLI-825.2025X
 
-      - POSTGRES_DB=sidatingapp-dev
+      - POSTGRES_DB=sidatingapp-dev-2
 
     volumes:
 
-      - sidating-app-db:/var/lib/postgresql/data
+      - sidating-app-db-2:/var/lib/postgresql/data
 
 volumes:
 
-  sidating-app-db:
+  sidating-app-db-2:
 
     driver: local
 
