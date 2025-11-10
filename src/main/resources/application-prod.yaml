@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/sidatingapp-prod
+    username: sidatingapp-prod
+    password: ${DB_PASSWORD:your-production-password}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+
+# Production specific configurations
+logging:
+  level:
+    io.harman.sidating_app_be: INFO
+    org.springframework.web: WARN
+  file:
+    name: logs/sidating-app.log
+
+server:
+  port: 8080
