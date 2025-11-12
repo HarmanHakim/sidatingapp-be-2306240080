@@ -67,11 +67,29 @@ jacoco {
 	toolVersion = "0.8.13"
 }
 
+
+// Define a list of exclusion patterns
+def jacocoExclude = [
+    '**/config/**', 
+    '**/*Application.class', 
+    '**/*Configuration.class', 
+    '**/model/**', 
+    '**/dto/**', 
+]
+
+
 jacocoTestReport {
 	dependsOn test
 	reports {
-		xml.required.set(true)
-		csv.required.set(false)
-		html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
+		xml.required = true
+		csv.required = false
+		html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
 	}
+
+	afterEvaluate {
+        // Filter the classes included in the JaCoCo report
+        classDirectories.setFrom(files(classDirectories.files.collect {
+            fileTree(dir: it, exclude: jacocoExclude)
+        }))
+    }
 }
