@@ -1,18 +1,23 @@
-server:
-  port: 8081
 spring:
   application:
-    name: sidating-app-be
-  
+    name: sidating-app-be-2
+
   mvc:
     hiddenmethod:
       filter:
         enabled: true
 
   profiles:
-    active: dev
+    active: 'dev'
 
-jpa:
-  hibernate:
-    ddl-auto: create-drop
-  show-sql: true
+  main:
+    allow-circular-references: true
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+sidating-app-be:
+  app:
+    jwtSecret: "${JWT_SECRET_KEY}"
+    jwtExpirationMs: 86400000

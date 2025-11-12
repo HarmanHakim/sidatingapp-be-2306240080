@@ -7,7 +7,7 @@ plugins {
 
 group = 'io.harman'
 version = '0.0.1-SNAPSHOT'
-description = 'Sistem Informasi Dating - APP - Backend'
+description = 'Sistem Informasi Dating 2 - APP - Backend'
 
 java {
 	toolchain {
@@ -30,6 +30,9 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'com.fasterxml.jackson.core:jackson-databind'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.h2database:h2'
@@ -38,27 +41,37 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testImplementation 'org.hamcrest:hamcrest:2.2'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	
 	implementation('com.github.javafaker:javafaker:1.0.2') {
 		exclude group: 'org.yaml', module: 'snakeyaml'
 	}
+	
+	// Security and JWT
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+	implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
+	implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.3'
+
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
-	finalizedBy jacocoTestReport
+	finalizedBy 'jacocoTestReport'
 }
 
 jacoco {
 	toolVersion = "0.8.13"
 }
 
-
 jacocoTestReport {
 	dependsOn test
 	reports {
-		xml.required = true
-		csv.required = false
-		html.outputLocation = layout.buildDirectory.dir('jacocoHtml')
+		xml.required.set(true)
+		csv.required.set(false)
+		html.outputLocation.set(layout.buildDirectory.dir("jacocoHtml"))
 	}
 }

@@ -1,21 +1,10 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:postgresql://localhost:35001/sidatingapp-dev-2
-    username: sidatingapp-dev-2
-    password: CLI-825.2025X
-    driver-class-name: org.postgresql.Driver
+    url: ${DATABASE_URL_DEV}
+    username: ${DEV_USERNAME}
+    password: ${DEV_PASSWORD}
 
-  jpa:
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
 
-# Development specific configurations
-logging:
-  level:
-    io.harman.sidating_app_be: DEBUG
-    org.springframework.web: DEBUG
+
