@@ -47,10 +47,9 @@ public class WebSecurityConfig {
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(requests -> requests
-                // Public endpoints - no authentication required
                 .requestMatchers("/api/auth/**").permitAll()
-                
-                // Profile endpoints
+                .requestMatchers("/api/profile/create").permitAll()
+
                 .requestMatchers("/api/profile").hasAuthority("Admin") 
                 .requestMatchers("/api/profile/delete/**").hasAuthority("Admin") 
                 .requestMatchers("/api/profile/**").hasAnyAuthority("Admin", "User")

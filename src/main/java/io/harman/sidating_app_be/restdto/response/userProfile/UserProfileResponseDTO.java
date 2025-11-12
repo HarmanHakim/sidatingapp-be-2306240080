@@ -16,6 +16,7 @@ public class UserProfileResponseDTO {
 	private UUID id;
 	private String name;
 	private String nickname;
+	private String role;
 	private LocalDate birthdate;
 	private Integer age; // Dihitung dari birthdate
 	private String ageGroup; // Kategoni umur (18-25, 26-35, 36-45, 45+)

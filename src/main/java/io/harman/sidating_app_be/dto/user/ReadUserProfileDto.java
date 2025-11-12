@@ -18,6 +18,7 @@ public class ReadUserProfileDto {
     private UUID id;
     private String name;
     private String nickname;
+    private String role;
     private LocalDate birthdate;
     private Integer age;
     private String ageGroup;
