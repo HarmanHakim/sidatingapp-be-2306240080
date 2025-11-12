@@ -9,9 +9,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.harman.sidating_app_be.restdto.BaseResponseDTO;
 import io.harman.sidating_app_be.restdto.request.reply.CreateReplyRequestDTO;
+import io.harman.sidating_app_be.restdto.request.reply.UpdateReplyRequestDTO;
 import io.harman.sidating_app_be.restdto.response.reply.ReplyResponseDTO;
 import io.harman.sidating_app_be.restservice.ReplyRestService;
 import jakarta.validation.Valid;
@@ -104,6 +107,86 @@ public class ReplyRestController {
         } catch (Exception e) {
             baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
             baseResponseDTO.setMessage("Failed to create reply: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+ 
+    @PutMapping("/{id}")
+    public ResponseEntity<BaseResponseDTO<ReplyResponseDTO>> updateReply(
+            @PathVariable UUID id,
+            @Valid @RequestBody UpdateReplyRequestDTO updateReplyRequestDTO,
+            BindingResult bindingResult) {
+ 
+        var baseResponseDTO = new BaseResponseDTO<ReplyResponseDTO>();
+ 
+        if (bindingResult.hasFieldErrors()) {
+            StringBuilder errorMessages = new StringBuilder();
+            List<FieldError> errors = bindingResult.getFieldErrors();
+ 
+            for (FieldError error : errors) {
+                errorMessages.append(error.getDefaultMessage()).append("; ");
+            }
+ 
+            baseResponseDTO.setStatus(HttpStatus.BAD_REQUEST.value());
+            baseResponseDTO.setMessage(errorMessages.toString());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.BAD_REQUEST);
+        }
+ 
+        try {
+            ReplyResponseDTO reply = replyRestService.updateReply(id, updateReplyRequestDTO);
+ 
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setData(reply);
+            baseResponseDTO.setMessage("Reply updated successfully");
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+ 
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Unauthorized")) {
+                baseResponseDTO.setStatus(HttpStatus.FORBIDDEN.value());
+                baseResponseDTO.setMessage(e.getMessage());
+                baseResponseDTO.setTimestamp(new Date());
+                return new ResponseEntity<>(baseResponseDTO, HttpStatus.FORBIDDEN);
+            }
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Failed to update reply: " + e.getMessage());
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+ 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<BaseResponseDTO<Void>> deleteReply(
+            @PathVariable UUID id,
+            @RequestParam UUID userProfileId) {
+ 
+        var baseResponseDTO = new BaseResponseDTO<Void>();
+ 
+        try {
+            replyRestService.deleteReply(id, userProfileId);
+ 
+            baseResponseDTO.setStatus(HttpStatus.OK.value());
+            baseResponseDTO.setMessage("Reply deleted successfully");
+            baseResponseDTO.setTimestamp(new Date());
+            return new ResponseEntity<>(baseResponseDTO, HttpStatus.OK);
+ 
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("Unauthorized")) {
+                baseResponseDTO.setStatus(HttpStatus.FORBIDDEN.value());
+                baseResponseDTO.setMessage(e.getMessage());
+                baseResponseDTO.setTimestamp(new Date());
+                return new ResponseEntity<>(baseResponseDTO, HttpStatus.FORBIDDEN);
+            }
+            if (e.getMessage().contains("not found")) {
+                baseResponseDTO.setStatus(HttpStatus.NOT_FOUND.value());
+                baseResponseDTO.setMessage(e.getMessage());
+                baseResponseDTO.setTimestamp(new Date());
+                return new ResponseEntity<>(baseResponseDTO, HttpStatus.NOT_FOUND);
+            }
+            baseResponseDTO.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            baseResponseDTO.setMessage("Failed to delete reply: " + e.getMessage());
             baseResponseDTO.setTimestamp(new Date());
             return new ResponseEntity<>(baseResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
         }

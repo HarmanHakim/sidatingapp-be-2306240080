@@ -12,6 +12,7 @@ import io.harman.sidating_app_be.repository.ReplyRepository;
 import io.harman.sidating_app_be.restdto.external.PostDTO;
 import io.harman.sidating_app_be.restdto.external.UserProfileDTO;
 import io.harman.sidating_app_be.restdto.request.reply.CreateReplyRequestDTO;
+import io.harman.sidating_app_be.restdto.request.reply.UpdateReplyRequestDTO;
 import io.harman.sidating_app_be.restdto.response.reply.ReplyResponseDTO;
  
 @Service
@@ -65,6 +66,53 @@ public class ReplyRestService {
  
         Reply savedReply = replyRepository.save(reply);
         return mapToResponseDTO(savedReply);
+    }
+ 
+    public ReplyResponseDTO updateReply(UUID id, UpdateReplyRequestDTO requestDTO) {
+        Reply reply = replyRepository.findById(id).orElse(null);
+        if (reply == null) {
+            throw new RuntimeException("Reply with id " + id + " not found");
+        }
+ 
+        // Check authorization
+        UserProfileDTO user = externalApiService.getUserProfile(requestDTO.getUserProfileId());
+        if (user == null) {
+            throw new RuntimeException("User profile not found");
+        }
+ 
+        boolean isAdmin = "Admin".equals(user.getRole());
+        boolean isOwner = reply.getUserProfileId().equals(requestDTO.getUserProfileId());
+ 
+        if (!isAdmin && !isOwner) {
+            throw new RuntimeException("Unauthorized: Only admins or the reply owner can update this reply");
+        }
+ 
+        // Update reply
+        reply.setContent(requestDTO.getContent());
+        Reply updatedReply = replyRepository.save(reply);
+        return mapToResponseDTO(updatedReply);
+    }
+ 
+    public void deleteReply(UUID id, UUID userProfileId) {
+        Reply reply = replyRepository.findById(id).orElse(null);
+        if (reply == null) {
+            throw new RuntimeException("Reply with id " + id + " not found");
+        }
+ 
+        // Check authorization
+        UserProfileDTO user = externalApiService.getUserProfile(userProfileId);
+        if (user == null) {
+            throw new RuntimeException("User profile not found");
+        }
+ 
+        boolean isAdmin = "Admin".equals(user.getRole());
+        boolean isOwner = reply.getUserProfileId().equals(userProfileId);
+ 
+        if (!isAdmin && !isOwner) {
+            throw new RuntimeException("Unauthorized: Only admins or the reply owner can delete this reply");
+        }
+ 
+        replyRepository.delete(reply);
     }
  
     private ReplyResponseDTO mapToResponseDTO(Reply reply) {

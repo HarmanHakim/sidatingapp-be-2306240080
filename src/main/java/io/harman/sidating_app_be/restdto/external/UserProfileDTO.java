@@ -20,6 +20,7 @@ public class UserProfileDTO {
     private LocalDate birthdate;
     private String hobbies;
     private String gender;
+    private String role;
     private String location;
     private String bio;
     private String email;
