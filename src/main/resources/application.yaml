@@ -21,3 +21,6 @@ sidating-app-be:
   app:
     jwtSecret: "${JWT_SECRET_KEY}"
     jwtExpirationMs: 86400000
+
+external:
+  sidating-app-be-url: "http://localhost:8080"
