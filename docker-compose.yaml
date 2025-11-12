@@ -1,5 +1,4 @@
 services:
-
   sidating-app-db:
     image: postgres:17.5-alpine
     ports:
