@@ -1,5 +1,4 @@
-package io.harman.sidating_app_be.restservice;
-
+package io.harman.sidating_app_be.restService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -17,9 +16,9 @@ import io.harman.sidating_app_be.model.Role;
 import io.harman.sidating_app_be.model.UserProfile;
 import io.harman.sidating_app_be.repository.RoleRepository;
 import io.harman.sidating_app_be.repository.UserProfileRepository;
-import io.harman.sidating_app_be.restdto.request.userprofile.AddUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.request.userprofile.UpdateUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.response.userprofile.UserProfileResponseDTO;
+import io.harman.sidating_app_be.restdto.request.userProfile.AddUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.request.userProfile.UpdateUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.response.userProfile.UserProfileResponseDTO;
 import io.harman.sidating_app_be.security.jwt.JwtUtils;
 import jakarta.annotation.PostConstruct;
 

@@ -1,4 +1,4 @@
-package io.harman.sidating_app_be.restservice;
+package io.harman.sidating_app_be.restService;
 
 import io.harman.sidating_app_be.restdto.request.post.CreatePostRequestDTO;
 import io.harman.sidating_app_be.restdto.request.post.UpdatePostRequestDTO;

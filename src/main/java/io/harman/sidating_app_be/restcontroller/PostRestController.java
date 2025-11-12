@@ -3,7 +3,7 @@ package io.harman.sidating_app_be.restcontroller;
 import io.harman.sidating_app_be.restdto.BaseResponseDTO;
 import io.harman.sidating_app_be.restdto.request.post.*;
 import io.harman.sidating_app_be.restdto.response.post.*;
-import io.harman.sidating_app_be.restservice.PostRestService;
+import io.harman.sidating_app_be.restService.PostRestService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

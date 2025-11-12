@@ -1,10 +1,11 @@
-package io.harman.sidating_app_be.restservice;
+package io.harman.sidating_app_be.restService;
 
-import io.harman.sidating_app_be.restdto.request.userprofile.AddUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.request.userprofile.UpdateUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.response.userprofile.UserProfileResponseDTO;
 import java.util.List;
 import java.util.UUID;
+
+import io.harman.sidating_app_be.restdto.request.userProfile.AddUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.request.userProfile.UpdateUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.response.userProfile.UserProfileResponseDTO;
 
 public interface UserProfileRestService {
 	UserProfileResponseDTO createUserProfile(AddUserProfileRequestDTO addUserProfileRequestDTO);
@@ -13,6 +14,4 @@ public interface UserProfileRestService {
 	UserProfileResponseDTO getUserProfile(UUID id);
 	UserProfileResponseDTO updateUserProfile(UpdateUserProfileRequestDTO updateUserDto);
     UserProfileResponseDTO deleteUserProfile(UUID id);
-
-	
 }

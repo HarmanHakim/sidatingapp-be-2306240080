@@ -1,13 +1,23 @@
 package io.harman.sidating_app_be.restservice;
 
-import io.harman.sidating_app_be.model.Role;
-import io.harman.sidating_app_be.model.UserProfile;
-import io.harman.sidating_app_be.repository.RoleRepository;
-import io.harman.sidating_app_be.repository.UserProfileRepository;
-import io.harman.sidating_app_be.restdto.request.userprofile.AddUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.request.userprofile.UpdateUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.response.userprofile.UserProfileResponseDTO;
-import io.harman.sidating_app_be.security.jwt.JwtUtils;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,13 +25,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.*;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import io.harman.sidating_app_be.model.Role;
+import io.harman.sidating_app_be.model.UserProfile;
+import io.harman.sidating_app_be.repository.RoleRepository;
+import io.harman.sidating_app_be.repository.UserProfileRepository;
+import io.harman.sidating_app_be.restService.UserProfileRestServiceImpl;
+import io.harman.sidating_app_be.restdto.request.userProfile.AddUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.request.userProfile.UpdateUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.response.userProfile.UserProfileResponseDTO;
+import io.harman.sidating_app_be.security.jwt.JwtUtils;
 
 @ExtendWith(MockitoExtension.class)
 class UserProfileRestServiceImplTest {

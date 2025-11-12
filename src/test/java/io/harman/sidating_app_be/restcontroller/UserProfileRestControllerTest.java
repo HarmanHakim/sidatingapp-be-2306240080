@@ -1,11 +1,23 @@
 package io.harman.sidating_app_be.restcontroller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import io.harman.sidating_app_be.restdto.request.userprofile.AddUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.request.userprofile.UpdateUserProfileRequestDTO;
-import io.harman.sidating_app_be.restdto.response.userprofile.UserProfileResponseDTO;
-import io.harman.sidating_app_be.restservice.UserProfileRestService;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,17 +28,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.hamcrest.Matchers.containsString;
+import io.harman.sidating_app_be.restService.UserProfileRestService;
+import io.harman.sidating_app_be.restdto.request.userProfile.AddUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.request.userProfile.UpdateUserProfileRequestDTO;
+import io.harman.sidating_app_be.restdto.response.userProfile.UserProfileResponseDTO;
 
 @ExtendWith(MockitoExtension.class)
 class UserProfileRestControllerTest {

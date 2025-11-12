@@ -3,7 +3,7 @@ package io.harman.sidating_app_be.restcontroller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.harman.sidating_app_be.restdto.request.post.*;
 import io.harman.sidating_app_be.restdto.response.post.PostResponseDTO;
-import io.harman.sidating_app_be.restservice.PostRestService;
+import io.harman.sidating_app_be.restService.PostRestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

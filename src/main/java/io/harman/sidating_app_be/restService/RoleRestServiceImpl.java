@@ -1,4 +1,4 @@
-package io.harman.sidating_app_be.restservice;
+package io.harman.sidating_app_be.restService;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,5 +1,4 @@
-package io.harman.sidating_app_be.restdto.response.userprofile;
-
+package io.harman.sidating_app_be.restdto.response.userProfile;
 
 import lombok.Builder;
 import lombok.Data;

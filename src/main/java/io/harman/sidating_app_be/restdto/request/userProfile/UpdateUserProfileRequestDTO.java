@@ -1,4 +1,4 @@
-package io.harman.sidating_app_be.restdto.request.userprofile;
+package io.harman.sidating_app_be.restdto.request.userProfile;
 
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
