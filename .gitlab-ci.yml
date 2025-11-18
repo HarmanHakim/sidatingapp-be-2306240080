@@ -52,19 +52,19 @@ deploy:
   script:
     - echo "Generating Kubernetes ConfigMap & Secret via printf..."
     - |
-      printf "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: sidatingapp-1-config\n  namespace: default\ndata:\n  DATABASE_URL_PROD: \"%s\"\n  DATABASE_USERNAME: \"%s\"\n" \
+      printf "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: sidatingapp-2-config\n  namespace: default\ndata:\n  DATABASE_URL_PROD: \"%s\"\n  DATABASE_USERNAME: \"%s\"\n" \
       "$DATABASE_URL_PROD_1" "$DATABASE_USERNAME" > configmap.yaml
     - |
-      printf "apiVersion: v1\nkind: Secret\nmetadata:\n  name: sidatingapp-1-secret\n  namespace: default\ntype: Opaque\nstringData:\n  DATABASE_PASSWORD: \"%s\"\n  JWT_SECRET_KEY: \"%s\"\n" \
+      printf "apiVersion: v1\nkind: Secret\nmetadata:\n  name: sidatingapp-2-secret\n  namespace: default\ntype: Opaque\nstringData:\n  DATABASE_PASSWORD: \"%s\"\n  JWT_SECRET_KEY: \"%s\"\n" \
       "$DATABASE_PASSWORD" "$JWT_SECRET_KEY" > secret.yaml
     - sed "s|REPLACE_ME_TAG|$IMAGE_TAG|g" k8s/deployment.yaml > deployment.yaml
     - echo "Creating -> deployment.yaml, configmap.yaml, secret.yaml, service.yaml, ingress.yaml"
-    - ssh $EC2_USER@$EC2_HOST "mkdir -p ~/app/sidatingapp-1/k8s"
-    - scp deployment.yaml configmap.yaml secret.yaml k8s/service.yaml k8s/ingress.yaml $EC2_USER@$EC2_HOST:~/app/sidatingapp-1/k8s/
+    - ssh $EC2_USER@$EC2_HOST "mkdir -p ~/app/sidatingapp-2/k8s"
+    - scp deployment.yaml configmap.yaml secret.yaml k8s/service.yaml k8s/ingress.yaml $EC2_USER@$EC2_HOST:~/app/sidatingapp-2/k8s/
     - |
       ssh $EC2_USER@$EC2_HOST "
-        sudo k3s kubectl apply -f ~/app/sidatingapp-1/k8s/ &&
-        sudo k3s kubectl rollout status deployment/sidatingapp-1 -n default
+        sudo k3s kubectl apply -f ~/app/sidatingapp-2/k8s/ &&
+        sudo k3s kubectl rollout status deployment/sidatingapp-2 -n default
       "
   only:
     - feat/praktikum-9-be2
