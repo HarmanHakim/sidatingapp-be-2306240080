@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sidatingapp-2
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sidatingapp-2
+  template:
+    metadata:
+      labels:
+        app: sidatingapp-2
+    spec:
+      containers:
+        - name: springboot-container
+          image: harmanhakim/sidatingapp-2:REPLACE_ME_TAG
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL_PROD
+              valueFrom:
+                configMapKeyRef:
+                  name: sidatingapp-2-config
+                  key: DATABASE_URL_PROD
+            - name: DATABASE_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: sidatingapp-2-config
+                  key: DATABASE_USERNAME
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sidatingapp-2-secret
+                  key: DATABASE_PASSWORD
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: sidatingapp-2-secret
+                  key: JWT_SECRET_KEY
