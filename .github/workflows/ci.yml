@@ -85,13 +85,13 @@ jobs:
 
       - name: Generate ConfigMap
         run: |
-          printf "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: sidatingapp-1-be-config\n  namespace: default\ndata:\n  DATABASE_URL_PROD: \"%s\"\n  DATABASE_USERNAME: \"%s\"\n" \
+          printf "apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: sidatingapp-1-config\n  namespace: default\ndata:\n  DATABASE_URL_PROD: \"%s\"\n  DATABASE_USERNAME: \"%s\"\n" \
           "${{ secrets.DATABASE_URL_PROD_1 }}" \
           "${{ secrets.DATABASE_USERNAME }}" > configmap.yaml
 
       - name: Generate Secret
         run: |
-          printf "apiVersion: v1\nkind: Secret\nmetadata:\n  name: sidatingapp-1-be-secret\n  namespace: default\ntype: Opaque\nstringData:\n  DATABASE_PASSWORD: \"%s\"\n  JWT_SECRET_KEY: \"%s\"\n" \
+          printf "apiVersion: v1\nkind: Secret\nmetadata:\n  name: sidatingapp-1-secret\n  namespace: default\ntype: Opaque\nstringData:\n  DATABASE_PASSWORD: \"%s\"\n  JWT_SECRET_KEY: \"%s\"\n" \
           "${{ secrets.DATABASE_PASSWORD }}" \
           "${{ secrets.JWT_SECRET_KEY }}" > secret.yaml
 
@@ -100,13 +100,13 @@ jobs:
 
       - name: Copy k8s files to EC2
         run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "mkdir -p ~/app/sidatingapp-1-be/k8s"
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "mkdir -p ~/app/sidatingapp-1/k8s"
           scp deployment.yaml configmap.yaml secret.yaml k8s/service.yaml k8s/ingress.yaml \
-              ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/app/sidatingapp-1-be/k8s/
+              ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/app/sidatingapp-1/k8s/
 
       - name: Apply to k3s
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "
-            sudo k3s kubectl apply -f ~/app/sidatingapp-1-be/k8s/ &&
-            sudo k3s kubectl rollout status deployment/sidatingapp-1-be -n default
+            sudo k3s kubectl apply -f ~/app/sidatingapp-1/k8s/ &&
+            sudo k3s kubectl rollout status deployment/sidatingapp-1 -n default
           "
