@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: springboot-container
-          image: harmanhakim/sidatingapp-1:REPLACE_ME_TAG
+          image: harmanhakim/sidatingapp-be-1:REPLACE_ME_TAG
           ports:
             - containerPort: 8080
           env:
