@@ -34,10 +34,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
-            "http://localhost:5173", 
-            "http://localhost:3000", 
-            "http://localhost:8080",
-            "http://localhost:80"
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://localhost:8080",
+                "http://localhost:80",
+                "http://2306240080-sidating-fe.hafizmuh.site",
+                "http://2306240080-sidating-be1.hafizmuh.site",
+                "http://2306240080-sidating-be2.hafizmuh.site"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
