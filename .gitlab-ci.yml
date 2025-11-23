@@ -20,6 +20,7 @@ build:
       - Dockerfile
       - k8s/deployment.yaml
       - k8s/service.yaml
+      - k8s/ingress.yaml
     expire_in: 1 hour
 
 docker-push:
