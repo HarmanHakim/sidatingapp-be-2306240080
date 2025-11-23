@@ -1,8 +1,0 @@
-spring:
-  config:
-    import: optional:file:.env[.properties]
-  datasource:
-    url: ${DATABASE_URL_PROD}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
-
