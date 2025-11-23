@@ -30,7 +30,7 @@ jobs:
         run: ./gradlew clean build -x test
 
       - name: Find & copy JAR
-        run: cp $(find build/libs -name "*.jar" | head -n 1) app.jar
+        run: cp $(ls build/libs/* | grep -v plain | head -n 1) app.jar
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
